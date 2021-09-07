@@ -8,14 +8,13 @@
 #include <tf/transform_broadcaster.h>
 #include <tf/tf.h>
 
-#include <mrpt/math/CLevenbergMarquardt.h>
 
 #include "asa047.hpp"
 
 
-using namespace mrpt;
-using namespace mrpt::math;
-using namespace mrpt::system;
+//using namespace mrpt;
+//using namespace mrpt::math;
+//using namespace mrpt::system;
 using namespace std;
 
 sensor_msgs::MagneticField  received_vector0;
@@ -278,14 +277,14 @@ int objective_count=0;
 //receives one point on the conductor and current going through the conductor
 //assumes that two conductors have the same current and are on known distance from each other
 void Objective(
-	const CVectorDouble& x, const CVectorDouble& y, CVectorDouble& out_f)
+	double *x, double *out_f)
 {
 
 	double space_between_wires=0.4;
 
 
 
-	out_f.resize(1);
+	*out_f=0;
 	geometry_msgs::Vector3 point;
 	point.x = x[0];
 	point.y = x[1];
@@ -396,14 +395,14 @@ double Objective1(double x[4])
 
 
 
-	CVectorDouble initial_x,y,f;
-	initial_x.resize(4);
+	double initial_x[4];
+	double f;
 	initial_x[0] = x[0];  // x
 	initial_x[1] = x[1];  // y
 	initial_x[2] = x[2];  // y
 	initial_x[3] = x[3];  // y
-	Objective(initial_x,y,f);
-	return f[0];
+	Objective(initial_x,&f);
+	return f;
 
 
 }
@@ -648,25 +647,24 @@ bool GetPowerLinesLocation(sensor_msgs::MagneticField  m_vector0,
 	line_vector=normalize_vector(line_vector);
 
 
-	CVectorDouble optimal_x;
-	CVectorDouble initial_x;
-	CVectorDouble y;
+	double optimal_x[4];
+	double initial_x[4];
 
-	CLevenbergMarquardt::TResultInfo info;
 
-	initial_x.resize(4);
-	optimal_x.resize(4);
+
 	initial_x[0] = 1.4;  // x
 	initial_x[1] = 2.5;  // y
 	initial_x[2] = 2.5;  // y
 	initial_x[3] = 2.5;  // y
 
 
-	CVectorDouble increments_x(4);
-	increments_x.fill(0.001);
+	double increments_x[4];
+	increments_x[0]=0.001;;
+	increments_x[2]=0.001;;
+	increments_x[3]=0.001;;
 	increments_x[3]=0.1;
 
-	CLevenbergMarquardt lm;
+
 	double min=100000000;
 	double initial_xd[4];
 	double optim_x[4];

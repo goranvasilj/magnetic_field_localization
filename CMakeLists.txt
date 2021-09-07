@@ -28,7 +28,6 @@ target_link_libraries(magnetic_field_localization
 
 target_link_libraries(magnetic_field_localization_two_wire
   ${catkin_LIBRARIES}
-  ${MRPT_LIBS}
 )
 target_link_libraries(magnetic_field_vector
   ${catkin_LIBRARIES}
