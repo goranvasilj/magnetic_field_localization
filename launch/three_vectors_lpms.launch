@@ -8,7 +8,7 @@
 
 <!-- run node -->
   <node name="magnetic_field_vector1" pkg="magnetic_field_localization" type="magnetic_field_vector_fast" output="screen">
-    <param name="magnetometer_topic" type="str" value="/imu0/mag" />
+    <param name="magnetometer_topic" type="str" value="/imu1/mag" />
     <param name="vector_topic" type="str" value="/magnetic_vector0" />
     <param name="magnetometer_frame" type="str" value="/magnetometer0" />
     <param name="magnetic_field_frequency" type="int" value="50" />
@@ -33,7 +33,7 @@
     <param name="magnetic_field_frequency" type="int" value="50" />
     <param name="number_of_points_for_analysis" type="int" value="20" />
     <param name="number_of_cycles_for_analysis" type="int" value="1" />
-    <param name="magnetometer_sampling_time" type="double" value="0.0123" />
+    <param name="magnetometer_sampling_time" type="double" value="0.0128" />
   </node>
 
   <node pkg="tf" type="static_transform_publisher" name="magnetometer_position" args="0 -0.3 0 0 0 0 /magnetometer0 /magnetometer1 100"/> 

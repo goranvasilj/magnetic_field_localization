@@ -16,6 +16,8 @@ int data_count=0;
 bool first = true;
 sensor_msgs::MagneticField data[MAX_DATA];
 int received=0;
+
+
 void magnetometer_callback(const sensor_msgs::MagneticField::ConstPtr& msg){
 	if (data_count>=MAX_DATA)
 	{
@@ -25,69 +27,6 @@ void magnetometer_callback(const sensor_msgs::MagneticField::ConstPtr& msg){
 	received ++;
 	data[data_count]=*msg;
 	data_count++;
-}
-void GetSumOfDifferences(double* data1, double* data2, int n,double *result1,double *result2)
-{
-	double suma1 = 0;
-	double suma2 = 0;
-	double pod1;
-	double pod2;
-	for (int i = 1; i < n; i++)
-	{
-		pod1=0;
-		pod2=0;
-		if (data1[i] - data1[i - 1] > 0)  pod1 = 1;
-		if (data1[i] - data1[i - 1] < 0)  pod1 = -1;
-		if (data2[i] - data2[i - 1] > 0)  pod2 = 1;
-		if (data2[i] - data2[i - 1] < 0)  pod2 = -1;
-
-		suma1 = suma1 + fabs(pod1);
-		suma2 = suma2 + fabs(pod1 - pod2);
-
-	}
-	*result1 = suma1;
-	*result2 = suma2;
-
-}
-
-
-double GetRMS(double* time, double* data, int n, double f)
-{
-	double sum=0;
-	for (int i = 0; i < n; i++)
-	{
-		double timediff=0;
-		sum=sum+data[i]*data[i];
-	}
-	return sqrt(sum/n);
-}
-
-geometry_msgs::Vector3 GetVectorUsingRMS(int n, int f, double *suma1, double *suma2, double *suma3)
-{
-	geometry_msgs::Vector3 result;
-	double x[MAX_DATA];
-	double y[MAX_DATA];
-	double z[MAX_DATA];
-	double time[MAX_DATA];
-
-	for (int i=0;i<n;i++)
-	{
-		int current_element = data_count + i - n;
-		if (current_element<0) current_element = current_element + MAX_DATA;
-		x[i] = data[current_element].magnetic_field.x;
-		y[i] = data[current_element].magnetic_field.y;
-		z[i] = data[current_element].magnetic_field.z;
-	}
-	double anglex,angley,anglez;
-	result.x = GetRMS(time, x, n, f);
-	result.y = GetRMS(time, y, n, f);
-	result.z = GetRMS(time, z, n, f);
-
-	GetSumOfDifferences(x, y, n,suma1,suma2);
-	GetSumOfDifferences(x, z, n,suma1,suma3);
-
-
-	return result;
 }
 
 
@@ -125,20 +64,15 @@ double Objective(double x[3])
 	double a = x[0] * 1000000;
 	double fi = x[1];
 	double dc = x[2] * 1000000;
-//	if (a > maxa) return 1000000000;
-//	if (a < mina) return 1000000000;
 
-	//	std::cout<<a <<" "<< fi<<" " <<dc<<std::endl;
 	double y = 0;
 	for (int i = 0; i < measurements_count; i++)
 	{
 		double t = i * magnetometer_sampling_time; //
 		double value = dc + a * sin(2 * 3.14159265 * frequency * t + fi);
-		//std::cout<< value << " " << measurements[i]*1000000<< std::endl;
 
 		y = y + (value - measurements[i] * 1000000) * (value - measurements[i]*1000000);
 	}
-//	std::cout<< y << std::endl << std::endl;
 	return y;
 }
 
@@ -158,7 +92,6 @@ double Optimize(int n, int f, double *data, double *phase)
 	double sum=0;
 	for (int i = 0; i < n; i++)
 	{
-//		std::cout<<"data "<<data[i]<<std::endl;
 		measurements[i] = data[i];
 		if (data[i] < minvalue || i==0)
 		{
@@ -171,55 +104,23 @@ double Optimize(int n, int f, double *data, double *phase)
 		sum = sum + data[i];
 	}
 	double mean = sum / n;
-	double min=1000000000000;
+	double min = 1000000000000;
 	std::cout<<std::endl;
-//	std::cout<<"mean "<<mean<<std::endl;
+
 	maxa = (maxvalue - minvalue) / 2 * 1.2 * 1000000;
 	mina = (maxvalue - minvalue) / 2 * 0.8 * 1000000;
-// 	for (int k=0 ;k<10; k++)
-//	{
 
-		nelmin(Objective, 3, initial_xd, optim_x, &optim_krit, 1.0e-8, step, 10, 500, &icount, &numres, &ifault );
-		initial_xd[0]=(maxvalue-minvalue)/2;
-		initial_xd[1]=0.5;//*k;
-		initial_xd[2]=mean;
-//		std::cout<< "k "<<optim_krit<<" ";
-		if (optim_krit<min)
-		{
-			min=optim_krit;
-			optim_x_final[0]=optim_x[0];
-			optim_x_final[1]=optim_x[1];
-			optim_x_final[2]=optim_x[2];
-		}
-	//}
-/*
-	std::cout<<"start"<<std::endl;
- 	for (double fi=0;fi<6.28;fi=fi+0.01)
- 	{
- 		for (double amp=(maxvalue - minvalue) / 2 * 0.8 ; amp < (maxvalue - minvalue) / 2 * 1.2 ; amp= amp + (maxvalue - minvalue) / 2 * 0.01)
- 		{
-// 			std::cout<<fi <<" "<<amp<<std::endl;
- 			initial_xd[0]=amp;
- 			initial_xd[1]=fi;
- 			initial_xd[2]=mean;
- 			optim_krit=Objective(initial_xd);
- 			if (optim_krit<min)
- 			{
- 				min=optim_krit;
- 				optim_x_final[0]=amp;
- 				optim_x_final[1]=fi;
- 				optim_x_final[2]=mean;
- 			}
- 		}
- 	}
-		*/
-// 	std::cout<<"magnetometer_sampling_time "<<magnetometer_sampling_time<<std::endl;
-
-
-		//std::cout<< "min"<<min<<std::endl;
-
- 	//std::cout<<std::endl;
-//	std::cout<< min<< "    count"<<measurements_count<<" optim "<<optim_x_final[0]*1000000<<" minmax "<<(maxvalue-minvalue)/2*1000000<<std::endl;
+	nelmin(Objective, 3, initial_xd, optim_x, &optim_krit, 1.0e-8, step, 10, 500, &icount, &numres, &ifault );
+	initial_xd[0] = (maxvalue - minvalue) / 2;
+	initial_xd[1] = 0.5;;
+	initial_xd[2] = mean;
+	if (optim_krit < min)
+	{
+		min=optim_krit;
+		optim_x_final[0] = optim_x[0];
+		optim_x_final[1] = optim_x[1];
+		optim_x_final[2] = optim_x[2];
+	}
 	*phase = optim_x_final[1];
 	return optim_x_final[0];
 }
@@ -230,8 +131,38 @@ void ispisi_vektor(geometry_msgs::Vector3 vektor, std::string str)
 	std::cout<<str<<" "<<vektor.x<<" "<<vektor.y<< " "<<vektor.z<<std::endl;
 }
 
+double GetDFTAngle(int selected_axis, int point_count, int start_element)
+{
+	double real=0, img=0;
+	double current_data;
+	int k = 50;
+	for (int i=0;i<point_count; i++)
+	{
+		int current_element = start_element + i - point_count;
+		if (current_element < 0) current_element = current_element + MAX_DATA;
 
-geometry_msgs::Vector3 GetVectorUsingOptimization(int n, int f, double *suma1, double *suma2, double *suma3)
+		if (selected_axis == 0)
+		{
+			current_data = data[current_element].magnetic_field.x;
+		}
+		if (selected_axis == 1)
+		{
+			current_data = data[current_element].magnetic_field.y;
+		}
+		if (selected_axis == 2)
+		{
+			current_data = data[current_element].magnetic_field.z;
+		}
+		real = real + current_data * cos((2 * i * k * 3.14159265) / point_count );
+		img = img - current_data * sin((2 * i * k * 3.14159265) / point_count );
+	}
+	std::cout<<"dft real img "<<real<<" "<<img<<std::endl;
+	return atan2(img,real);
+}
+
+int last1=0;
+int last2=0;
+geometry_msgs::Vector3 GetVectorUsingOptimization(int n, int f, ros::Time *stamp)
 {
 	geometry_msgs::Vector3 result;
 	double x[MAX_DATA];
@@ -242,26 +173,64 @@ geometry_msgs::Vector3 GetVectorUsingOptimization(int n, int f, double *suma1, d
 	int data_count_current = data_count;
 	double poc=0,kr=0;
 //	int current_element_old;
+	ros::Time begin_stamp_x;
+	ros::Time begin_stamp_y;
+	ros::Time begin_stamp_z;
+	ros::Time begin_stamp;
+
+	bool first_x=true;
+	bool first_y=true;
+	bool first_z=true;
+
+	double start_element_x=0;
+	double start_element_y=0;
+	double start_element_z=0;
 
 	for (int i=0;i<n;i++)
 	{
 		int current_element = data_count_current + i - n;
 		if (current_element<0) current_element = current_element + MAX_DATA;
-
 		x[countx] = data[current_element].magnetic_field.x;
 		y[county] = data[current_element].magnetic_field.y;
 		z[countz] = data[current_element].magnetic_field.z;
 
 
-//		std::cout<<data[current_element].magnetic_field.x<<" "<<data[current_element].magnetic_field.y<<" "<<data[current_element].magnetic_field.z<<" "<<std::endl;;
-//		current_element_old=current_element;
-
-
 		if (i>0)
 		{
-			if (x[countx] != x[countx-1]) countx++;
-			if (y[county] != y[county-1]) county++;
-			if (z[countz] != z[countz-1]) countz++;
+			if (x[countx] != x[countx-1])
+			{
+				countx++;
+				if (first_x)
+				{
+					start_element_x = current_element;
+					begin_stamp_x = data[current_element].header.stamp;
+					first_x = false;
+				}
+
+
+			}
+			if (y[county] != y[county-1])
+			{
+				county++;
+				if (first_y)
+				{
+					start_element_y = current_element;
+					begin_stamp_y = data[current_element].header.stamp;
+					first_y = false;
+				}
+			}
+			if (z[countz] != z[countz-1])
+			{
+				if (first_z)
+				{
+					start_element_z = current_element;
+					begin_stamp_z = data[current_element].header.stamp;
+					first_z = false;
+				}
+				countz++;
+			}
+
+
 		}
 		else
 		{
@@ -275,19 +244,20 @@ geometry_msgs::Vector3 GetVectorUsingOptimization(int n, int f, double *suma1, d
 	result.x = Optimize(countx, f, x, &anglex);
 	result.y = Optimize(county, f, y, &angley);
 	result.z = Optimize(countz, f, z, &anglez);
-
-	if (result.x < 0){ anglex = anglex + 3.14159; result.x = fabs(result.x);}
-	if (result.y < 0){ angley = angley + 3.14159; result.y = fabs(result.y);}
-	if (result.z < 0){ anglez = anglez + 3.14159; result.z = fabs(result.z);}
+	bool add_pi[3]={false,false,false};
+	if (result.x < 0){ anglex = anglex + 3.14159; result.x = fabs(result.x); add_pi[0]= true;}
+	if (result.y < 0){ angley = angley + 3.14159; result.y = fabs(result.y); add_pi[1]=true;}
+	if (result.z < 0){ anglez = anglez + 3.14159; result.z = fabs(result.z); add_pi[2]=true;}
 	std::cout<<" angle init "<<anglex<< " "<< angley<<" "<<anglez<<std::endl;
 
 	anglex = anglex - ((int)(anglex / (2 * 3.14159)))*2*3.14159;
 	angley = angley - ((int)(angley / (2 * 3.14159)))*2*3.14159;
 	anglez = anglez - ((int)(anglez / (2 * 3.14159)))*2*3.14159;
 
-	double maxx = result.x, angle_max = anglex;
-	if (result.y > maxx) { maxx = result.y; angle_max=angley;}
-	if (result.z > maxx) { maxx = result.z; angle_max=anglez;}
+	double maxx = result.x, angle_max = anglex; begin_stamp = begin_stamp_x;
+	int selected_angle=0;
+	if (result.y > maxx) { maxx = result.y; angle_max=angley; begin_stamp = begin_stamp_y; selected_angle = 1;}
+	if (result.z > maxx) { maxx = result.z; angle_max=anglez; begin_stamp = begin_stamp_z; selected_angle = 2;}
 
 	if (fabs(anglex - angle_max) > 3.14159/2 && fabs(fabs(anglex - angle_max) - 3.14159 * 2) > 3.14159/2)
 	{
@@ -301,12 +271,94 @@ geometry_msgs::Vector3 GetVectorUsingOptimization(int n, int f, double *suma1, d
 	{
 		result.z = -result.z;
 	}
+	if (angle_max < 0) angle_max += 2 * 3.14159265;
 	ispisi_vektor(result," vektor ");
-	std::cout<<" angle "<<anglex<< " "<< angley<<" "<<anglez<<std::endl;
-	GetSumOfDifferences(x, y, n,suma1,suma2);
-	GetSumOfDifferences(x, z, n,suma1,suma3);
+	std::cout<<" angle "<<anglex<< " "<< angley<<" "<<anglez<<"     angle max"<< angle_max<<std::endl;
+
+	double fft_angle=0;
+	if (selected_angle == 0)
+	{
+		fft_angle = GetDFTAngle(selected_angle, 200, start_element_x);
+	}
+	if (selected_angle == 1)
+	{
+		fft_angle = GetDFTAngle(selected_angle, 200, start_element_y);
+	}
+	if (selected_angle == 2)
+	{
+		fft_angle = GetDFTAngle(selected_angle, 200, start_element_z);
+	}
+
+	std::cout<<"fft angle "<<fft_angle<<std::endl;
 
 
+	ros::Duration difference(0, 0.02 * (2 * 3.14159 - fft_angle) / 2 / 3.14159265 * 1000000000);
+	std::cout<<"time difference "<< 0.02 * (2 * 3.14159 - fft_angle) / 2 / 3.14159265*1000<<std::endl;
+
+	ros::Time new_time(begin_stamp+difference);
+	std::cout<<"time "<<new_time.nsec/1000000<<std::endl;
+
+	int present= new_time.nsec/1000000;
+
+
+	int diff1 = present - last1;
+	int diff2 = present - last2;
+
+	if (diff1 < 0) diff1 = diff1 + 1000;
+	if (diff2 < 0) diff2 = diff2 + 1000;
+
+	diff1=diff1 % 20;
+	diff2=diff2 % 20;
+	std::cout<< " time difference since last "<<diff1<<" "<<diff2<<std::endl;
+/*
+	if (diff1 <= 5 && diff2 <= 5)
+	{
+		if (diff1<diff2)
+		{
+			ros::Duration correction(0, diff1 * 1000000);
+			new_time = new_time - correction;
+			std::cout<<"correction "<<diff1<<std::endl;
+		}
+		else
+		{
+			ros::Duration correction(0, diff2 * 1000000);
+			new_time = new_time - correction;
+			std::cout<<"correction "<<diff2<<std::endl;
+
+		}
+	}
+	if (diff1 >= 15 & diff2 >= 15)
+	{
+		if (diff1<diff2)
+		{
+			ros::Duration correction(0, diff2 * 1000000);
+			new_time = new_time - correction;
+			std::cout<<"correction "<<diff2<<std::endl;
+
+		}
+		else
+		{
+			ros::Duration correction(0, diff1 * 1000000);
+			new_time = new_time - correction;
+			std::cout<<"correction "<<diff1<<std::endl;
+
+		}
+	}
+	if (diff1>5  && diff1 <15 && diff2 >5 && diff2<15)
+	{
+		ros::Duration correction(0, diff2 * 1000000);
+		new_time = new_time - correction;
+		std::cout<<"correction "<<diff2<<std::endl;
+
+
+	}*/
+	last2 = last1;
+	last1 = present;
+
+
+	std::cout<<"stamp "<<new_time.sec<<" "<<new_time.nsec<<std::endl;
+
+	*stamp = new_time;
 	return result;
 }
 
@@ -355,7 +407,7 @@ int main (int argc, char** argv){
 
     ros::Subscriber magnetometer_subscriber = nh.subscribe(magnetometer_topic, 1000, magnetometer_callback);
 
-    ros::Publisher magnetic_vector_publisher = nh.advertise<geometry_msgs::Vector3>(magnetic_vector_topic, 1000);
+    ros::Publisher magnetic_vector_publisher = nh.advertise<sensor_msgs::MagneticField>(magnetic_vector_topic, 1000);
 
     ros::Rate loop_rate(1000);
 
@@ -371,9 +423,6 @@ int main (int argc, char** argv){
     double y_size = 0;
     double z_size = 0;
     double vector_size = 0;
-    double suma1 = 0;
-    double suma2 = 0;
-    double suma3 = 0;
     vector_final.x = 0;
     vector_final.y = 0;
     vector_final.z = 0;
@@ -393,34 +442,22 @@ int main (int argc, char** argv){
     while(ros::ok()){
 
         ros::spinOnce();
-        suma1=0;
-        suma2=0;
-        suma3=0;
         if (first == false && received > number_of_points_for_analysis)
         {
         	std::cout<<"received "<<received<<std::endl;
         	double pom1=0,pom2=0,pom3=0;
-//    		vector=GetVectorUsingRMS(number_of_points_for_analysis, magnetic_field_frequency,&pom1,&pom2,&pom3);
-//    		std::cout<<magnetometer_topic<<" ";
 
-        	vector=GetVectorUsingOptimization(number_of_points_for_analysis/*received*/, magnetic_field_frequency,&pom1,&pom2,&pom3);
+        	ros::Time stamp;
+        	vector=GetVectorUsingOptimization(number_of_points_for_analysis, magnetic_field_frequency , &stamp);
         	received=0;
 
-        	//    		std::cout<<std::endl;
-    		suma1=suma1+pom1;
-    		suma2=suma2+pom2;
-    		suma3=suma3+pom3;
     		if (vector_final.x != vector_final.x) vector_final.x = 0;
     		if (vector_final.y != vector_final.y) vector_final.y = 0;
     		if (vector_final.z != vector_final.z) vector_final.z = 0;
     		geometry_msgs::Vector3 pomocni_vektor = vector;
 
-//        	ispisi_vektor(vector_final_old_old,"i-2 ");
-//        	ispisi_vektor(vector_final_old,"i-1 ");
-//        	ispisi_vektor(vector,"i ");
 
-
-    		vector= Median(vector, vector_final_old, vector_final_old_old);
+    		vector = Median(vector, vector_final_old, vector_final_old_old);
 
 
 
@@ -437,16 +474,6 @@ int main (int argc, char** argv){
     		vector_final_old = pomocni_vektor;
 
 
-        	/*if (suma2>suma1)
-        	{
-        		vector_final.y=-vector_final.y;
-        	}
-        	if (suma3>suma1)
-        	{
-        		vector_final.z=-vector_final.z;
-        	}*/
-//        	ROS_INFO_STREAM("publishing " << magnetometer_frame << " "<< magnetometer_topic << " vector"<<vector_final);
-//        		ROS_INFO_STREAM("direction sum1 sum2 sum3 "<<suma1<<" "<<suma2<<" "<< suma3);
 
 
             geometry_msgs::Vector3 pomocni;
@@ -456,22 +483,23 @@ int main (int argc, char** argv){
             geometry_msgs::Vector3 kros=normalize_vector(CrossProduct(pomocni,normalize_vector(vector_final)));
 
             double w=1+DotProduct(pomocni,normalize_vector(vector_final));
-//            std::cout<<kros.x<<" "<< kros.y<<" "<< kros.z<<" "<< w<<std::endl;
+
             transform1.setOrigin(tf::Vector3(0,0,0));
             transform1.setRotation(tf::Quaternion(kros.x, kros.y, kros.z, w));
             br.sendTransform(tf::StampedTransform(transform1, ros::Time::now(), magnetometer_frame, magnetic_vector_topic));
 
+            sensor_msgs::MagneticField publish_field;
+            publish_field.magnetic_field = vector_final;
+            publish_field.header.stamp = stamp;
 
-
-        	magnetic_vector_publisher.publish(vector_final);
+        	magnetic_vector_publisher.publish(publish_field);
             x_size=0;
             y_size=0;
             z_size=0;
-            suma1=0;
-            suma2=0;
-            suma3=0;
             vector_size=0;
         	cycle_count = 0;
+        	std::cout<<magnetometer_frame<<std::endl;
+
 
         }
         loop_rate.sleep();
