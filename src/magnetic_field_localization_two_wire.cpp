@@ -255,6 +255,7 @@ inline geometry_msgs::Vector3 operator+(geometry_msgs::Vector3 o1, geometry_msgs
 	rez.x=o1.x+o2.x;
 	rez.y=o1.y+o2.y;
 	rez.z=o1.z+o2.z;
+
 	return rez;
 }
 
@@ -281,7 +282,11 @@ void Objective(
 {
 
 	double space_between_wires=0.4;
-
+	if (fabs(x[0])>2 || fabs(x[1])>2 || fabs(x[2])>2 || fabs(x[3])>40)
+	{
+		*out_f=1000000000;
+		return;
+	}
 
 
 	*out_f=0;
@@ -289,6 +294,7 @@ void Objective(
 	point.x = x[0];
 	point.y = x[1];
 	point.z = x[2];
+
 
 
 	tf::Matrix3x3 rot=base_link.getBasis();
@@ -332,6 +338,9 @@ void Objective(
 	m10 = m_0 - m00;
 	m11 = m_1 - m01;
 	m12 = m_2 - m02;
+	if (ispis) ispisi_vektor(m00," m00 ");
+	if (ispis) ispisi_vektor(m01," m01 ");
+	if (ispis) ispisi_vektor(m02," m02 ");
 
 	double min=1;
 	geometry_msgs::Vector3 pomocni;
@@ -360,33 +369,55 @@ void Objective(
 
 	geometry_msgs::Vector3 plv0, plv1, plv2,plp0, plp1, plp2;
 
-
+	if (ispis) ispisi_vektor(line_vector_z," line vektor z ");
 
 	plp0=point + line_vector_z * space_between_wires;
+	if (ispis) ispisi_vektor(point," point ");
+	if (ispis) ispisi_vektor(plp0," plp0 ");
 
 	geometry_msgs::Vector3 m10n = GetFieldVectorOneWire(plp0, line_vector, i1, m0_loc);
 	geometry_msgs::Vector3 m11n = GetFieldVectorOneWire(plp0, line_vector, i1, m1_loc);
 	geometry_msgs::Vector3 m12n = GetFieldVectorOneWire(plp0, line_vector, i1, m2_loc);
 
+	if (ispis) ispisi_vektor(m10n," m10n ");
+	if (ispis) ispisi_vektor(m11n," m12n ");
+	if (ispis) ispisi_vektor(m12n," m12n ");
+
 	double dist = VectorSize(m10-m10n) +VectorSize(m11-m11n) + VectorSize(m12-m12n);
 	double min_dist=dist;
+
+	if (ispis) ispisi_vektor(m10-m10n," diff1 ");
+	if (ispis) ispisi_vektor(m11-m11n," diff2 ");
+	if (ispis) ispisi_vektor(m12-m12n," diff3 ");
+
 	plp1=plp0;
 
-	plp0=point - line_vector_z * space_between_wires;
+	plp0=point + line_vector_z * space_between_wires;
 
-	m10n = GetFieldVectorOneWire(plp0, line_vector_z, i1, m0_loc);
+/*	m10n = GetFieldVectorOneWire(plp0, line_vector_z, i1, m0_loc);
 	m11n = GetFieldVectorOneWire(plp0, line_vector_z, i1, m1_loc);
 	m12n = GetFieldVectorOneWire(plp0, line_vector_z, i1, m2_loc);
-
+*/
 	dist = VectorSize(m10-m10n) +VectorSize(m11-m11n) + VectorSize(m12-m12n);
 	if (dist<min_dist){
 		min_dist=dist;
 		plp1=plp0;
 	}
+	plp0=point + line_vector_z * space_between_wires;
 
+
+	dist = VectorSize(m_0+m00+m10n) +VectorSize(m_1+m01+m11n) + VectorSize(m_2+m02+m12n);
+
+	if (ispis) ispisi_vektor(m_0+m00+m10n," diff1 neg");
+	if (ispis) ispisi_vektor(m_1+m01+m11n," diff2 neg");
+	if (ispis) ispisi_vektor(m_2+m02+m12n," diff3 neg");
+	if (dist<min_dist){
+		min_dist=dist;
+		plp1=point + line_vector_z * space_between_wires;;
+	}
 	plp0=plp1;
 	output_pose=plp0;
-
+//	std::cout<<min_dist<<" ";
 	out_f[0] = min_dist;
 }
 
@@ -460,21 +491,21 @@ void FindBestLocation(double *final,double *crit)
 	double finalxi=0;
 	double finalyi=0;
 	double finalii=0;
-	for (double xi = -2; xi < 2 ; xi = xi + 0.2)
+	for (double xi = -2; xi < 2 ; xi = xi + 0.1)
 	{
-		for (double yi = -2; yi < 2 ; yi = yi + 0.2)
+//		std::cout<<xi<<" ";
+		for (double yi = -2; yi < 2 ; yi = yi + 0.1)
 		{
 
 			double poc=1;
 			double kr=20;
-
 			pomak = pomocni1 * xi;
 			pomak = pomak + pomocni2 * yi;
 			for (double ii=10;ii<40;ii+=2)
 			{
 				pomak = pomocni1 * xi;
 				pomak = pomak + pomocni2 * yi;
-
+//double ii=27;
 
 
 				initial_xd[0] = pomak.x;// 0;  // x
@@ -493,9 +524,10 @@ void FindBestLocation(double *final,double *crit)
 				optimal_x[2]=initial_xd[2];
 				optimal_x[3]=initial_xd[3];
 				levmarq_final_error=optim_krit;
-				//std::cout<<optim_krit<<" ";
+//				std::cout<<optim_krit<<" ";
 				if (levmarq_final_error<min)
 				{
+//					std::cout<<" best ";
 
 					y = Objective1(optimal_x);
 					ispis=false;
@@ -514,10 +546,12 @@ void FindBestLocation(double *final,double *crit)
 				}
 			}
 		}
+//		std::cout<<std::endl;
 	}
+
 	for (double xi = finalxi-0.1; xi < finalxi+0.1 ; xi = xi + 0.01)
 	{
-		for (double yi = finalyi-0.1; yi < finalyi+01 ; yi = yi + 0.1)
+		for (double yi = finalyi-0.1; yi < finalyi+0.1 ; yi = yi + 0.01)
 		{
 
 			double poc=1;
@@ -525,6 +559,7 @@ void FindBestLocation(double *final,double *crit)
 
 			pomak = pomocni1 * xi;
 			pomak = pomak + pomocni2 * yi;
+//			double ii=27;
 			for (double ii=finalii-1;ii<finalii+1;ii+=0.2)
 			{
 				pomak = pomocni1 * xi;
@@ -551,7 +586,6 @@ void FindBestLocation(double *final,double *crit)
 				//std::cout<<optim_krit<<" ";
 				if (levmarq_final_error<min)
 				{
-
 					y = Objective1(optimal_x);
 					ispis=false;
 					min=levmarq_final_error;
@@ -568,8 +602,44 @@ void FindBestLocation(double *final,double *crit)
 			}
 		}
 	}
+	initial_xd[0] = 0;// 0;  // x
+	initial_xd[1] = -0.05;//yi;  // y
+	initial_xd[2] = -0.190;//xi;//zi;  // y
+	initial_xd[3] = 27;//ii;  // y
+	ispis=false;
+	double real_krit = Objective1(initial_xd);
+//	std::cout<<"real krit "<<real_krit<<std::endl;
+	ispis=false;
+	/*
+	initial_xd[0] = final[0];  // x
+	initial_xd[1] = final[1];  // y
+	initial_xd[2] = final[2];//z
+	initial_xd[3] = final[3];//ii;
+
+	nelmin(Objective1, 4, initial_xd, optim_x, &optim_krit, 1.0e-8, step, 10, 300, &icount, &numres, &ifault );
+	final[0]=optim_x[0];
+	final[1]=optim_x[1];
+	final[2]=optim_x[2];
+	final[3]=optim_x[3];
+	min=optim_krit;
+
+
+	initial_xd[0] = pose2[0];  // x
+	initial_xd[1] = pose2[1];  // y
+	initial_xd[2] = pose2[2];//zi;  // y
+	initial_xd[3] = final[3];//ii;
+	nelmin(Objective1, 4, initial_xd, optim_x, &optim_krit, 1.0e-8, step, 10, 300, &icount, &numres, &ifault );
+	if (optim_krit<min)
+	{
+		final[0]=optim_x[0];
+		final[1]=optim_x[1];
+		final[2]=optim_x[2];
+		final[3]=optim_x[3];
+		min=optim_krit;
+	}*/
 
 	*crit=min;
+
 }
 
 
@@ -607,7 +677,23 @@ bool GetPowerLinesLocation(sensor_msgs::MagneticField  m_vector0,
 
 	int d1=duration1.nsec/1000000;
 	int d2=duration2.nsec/1000000;
+//	std::cout<<" duration 1 "<<d1<<std::endl;
+//	std::cout<<" duration 2 "<<d2<<std::endl;
+		if (d1%20>5 && d1%20<15)
+		{
+			m_vector1.magnetic_field.x=-m_vector1.magnetic_field.x;
+			m_vector1.magnetic_field.y=-m_vector1.magnetic_field.y;
+			m_vector1.magnetic_field.z=-m_vector1.magnetic_field.z;
 
+
+		}
+		if (d2%20>5 && d2%20<15)
+		{
+			m_vector2.magnetic_field.x=-m_vector2.magnetic_field.x;
+			m_vector2.magnetic_field.y=-m_vector2.magnetic_field.y;
+			m_vector2.magnetic_field.z=-m_vector2.magnetic_field.z;
+
+		}
 
 
 	tf::Matrix3x3 base_link_rot=base_link.getBasis();
@@ -616,6 +702,9 @@ bool GetPowerLinesLocation(sensor_msgs::MagneticField  m_vector0,
 	z_vector.x=0;
 	z_vector.y=0;
 	z_vector.z=1;
+//	ispisi_vektor(m_vector0.magnetic_field,"m0 ");
+//	ispisi_vektor(m_vector1.magnetic_field,"m1 ");
+//	ispisi_vektor(m_vector2.magnetic_field,"m2 ");
 
 	m_0 = transform_vector(m_vector0.magnetic_field, base_link_rot);
 	m_1 = transform_vector(m_vector1.magnetic_field, base_link_rot);
@@ -637,6 +726,7 @@ bool GetPowerLinesLocation(sensor_msgs::MagneticField  m_vector0,
 	power_line_vector->x = (pom_vector1.x + pom_vector2.x + pom_vector3.x);
 	power_line_vector->y = (pom_vector1.y + pom_vector2.y + pom_vector3.y);
 	power_line_vector->z = (pom_vector1.z + pom_vector2.z + pom_vector3.z);
+
 
 	*power_line_vector=normalize_vector(*power_line_vector);
 
@@ -677,7 +767,7 @@ bool GetPowerLinesLocation(sensor_msgs::MagneticField  m_vector0,
 
 
 	FindBestLocation(final,&min);
-	ispis=true;
+//	ispis=true;
 	Objective1(final);
 	ispis=false;
 	cout<<"final "<<min<<"   x y z i "<<final[0]<<" "<<final[1]<<" "<<final[2]<<" "<<final[3]<<endl;

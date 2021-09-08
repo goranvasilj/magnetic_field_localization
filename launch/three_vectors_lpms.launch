@@ -18,7 +18,7 @@
   </node>
 
   <node name="magnetic_field_vector2" pkg="magnetic_field_localization" type="magnetic_field_vector_fast" output="screen">
-    <param name="magnetometer_topic" type="str" value="/imu1/mag" />
+    <param name="magnetometer_topic" type="str" value="/imu2/mag" />
     <param name="vector_topic" type="str" value="/magnetic_vector1" />
     <param name="magnetometer_frame" type="str" value="/magnetometer1" />
     <param name="magnetic_field_frequency" type="int" value="50" />
@@ -27,7 +27,7 @@
     <param name="magnetometer_sampling_time" type="double" value="0.01282" />
   </node>
   <node name="magnetic_field_vector3" pkg="magnetic_field_localization" type="magnetic_field_vector_fast" output="screen">
-    <param name="magnetometer_topic" type="str" value="/imu2/mag" />
+    <param name="magnetometer_topic" type="str" value="/imu3/mag" />
     <param name="vector_topic" type="str" value="/magnetic_vector2" />
     <param name="magnetometer_frame" type="str" value="/magnetometer2" />
     <param name="magnetic_field_frequency" type="int" value="50" />

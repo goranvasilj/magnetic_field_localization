@@ -16,6 +16,7 @@ int data_count=0;
 bool first = true;
 sensor_msgs::MagneticField data[MAX_DATA];
 int received=0;
+std::string magnetic_vector_topic;
 
 
 void magnetometer_callback(const sensor_msgs::MagneticField::ConstPtr& msg){
@@ -106,14 +107,22 @@ double Optimize(int n, int f, double *data, double *phase)
 	double mean = sum / n;
 	double min = 1000000000000;
 	std::cout<<std::endl;
-
 	maxa = (maxvalue - minvalue) / 2 * 1.2 * 1000000;
 	mina = (maxvalue - minvalue) / 2 * 0.8 * 1000000;
-
-	nelmin(Objective, 3, initial_xd, optim_x, &optim_krit, 1.0e-8, step, 10, 500, &icount, &numres, &ifault );
 	initial_xd[0] = (maxvalue - minvalue) / 2;
 	initial_xd[1] = 0.5;;
 	initial_xd[2] = mean;
+	nelmin(Objective, 3, initial_xd, optim_x, &optim_krit, 1.0e-8, step, 10, 500, &icount, &numres, &ifault );
+
+	if (fabs(optim_x[0])<(maxvalue - minvalue) / 2 /5)
+	{
+		initial_xd[0] = (maxvalue - minvalue) / 2;
+		initial_xd[1] = 0.5+3;;
+		initial_xd[2] = mean;
+		nelmin(Objective, 3, initial_xd, optim_x, &optim_krit, 1.0e-8, step, 10, 500, &icount, &numres, &ifault );
+
+	}
+	std::cout<<"max min vs optim "<<(maxvalue - minvalue) / 2<<" "<<optim_x[0]<<std::endl;
 	if (optim_krit < min)
 	{
 		min=optim_krit;
@@ -241,8 +250,11 @@ geometry_msgs::Vector3 GetVectorUsingOptimization(int n, int f, ros::Time *stamp
 
 	}
 	double anglex,angley,anglez;
+	std::cout<<magnetic_vector_topic<< " x ";
 	result.x = Optimize(countx, f, x, &anglex);
+	std::cout<<magnetic_vector_topic<<" y ";
 	result.y = Optimize(county, f, y, &angley);
+	std::cout<<magnetic_vector_topic<<" z ";
 	result.z = Optimize(countz, f, z, &anglez);
 	bool add_pi[3]={false,false,false};
 	if (result.x < 0){ anglex = anglex + 3.14159; result.x = fabs(result.x); add_pi[0]= true;}
@@ -392,7 +404,6 @@ int main (int argc, char** argv){
 
     int magnetic_field_frequency, cycles_for_analysis;
     std::string magnetometer_topic;
-    std::string magnetic_vector_topic;
     std::string magnetometer_frame="/magnetometer1";
 
     int number_of_points_for_analysis;
