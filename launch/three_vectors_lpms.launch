@@ -15,6 +15,7 @@
     <param name="number_of_points_for_analysis" type="int" value="20" />
     <param name="number_of_cycles_for_analysis" type="int" value="1" />
     <param name="magnetometer_sampling_time" type="double" value="0.01288" />
+    <param name="scaling" type="double" value="1000000" />
   </node>
 
   <node name="magnetic_field_vector2" pkg="magnetic_field_localization" type="magnetic_field_vector_fast" output="screen">
@@ -25,6 +26,7 @@
     <param name="number_of_points_for_analysis" type="int" value="20" />
     <param name="number_of_cycles_for_analysis" type="int" value="1" />
     <param name="magnetometer_sampling_time" type="double" value="0.01282" />
+    <param name="scaling" type="double" value="1000000" />
   </node>
   <node name="magnetic_field_vector3" pkg="magnetic_field_localization" type="magnetic_field_vector_fast" output="screen">
     <param name="magnetometer_topic" type="str" value="/imu3/mag" />
@@ -34,6 +36,7 @@
     <param name="number_of_points_for_analysis" type="int" value="20" />
     <param name="number_of_cycles_for_analysis" type="int" value="1" />
     <param name="magnetometer_sampling_time" type="double" value="0.0128" />
+    <param name="scaling" type="double" value="1000000" />
   </node>
 
   <node pkg="tf" type="static_transform_publisher" name="magnetometer_position" args="0 -0.3 0 0 0 0 /magnetometer0 /magnetometer1 100"/> 

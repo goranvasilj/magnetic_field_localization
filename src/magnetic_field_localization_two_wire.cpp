@@ -440,7 +440,8 @@ double Objective1(double x[4])
 
 double levmarq_final_error = 1e10;
 
-
+double values[60000]={0};
+double last_final[4]={0,0,0,0};
 
 void FindBestLocation(double *final,double *crit)
 {
@@ -491,6 +492,7 @@ void FindBestLocation(double *final,double *crit)
 	double finalxi=0;
 	double finalyi=0;
 	double finalii=0;
+	int count=0;
 	for (double xi = -2; xi < 2 ; xi = xi + 0.1)
 	{
 //		std::cout<<xi<<" ";
@@ -517,6 +519,9 @@ void FindBestLocation(double *final,double *crit)
 
 
 				optim_krit = Objective1(initial_xd);
+				values[count]=optim_krit*/*values[count]**/(1+fabs(pomak.x-last_final[0])/2+fabs(pomak.y-last_final[1])/2+fabs(pomak.z-last_final[2])/2+fabs(ii-last_final[3])/2)/**0.8+optim_krit*0.2*/;
+				optim_krit=values[count];
+				count++;
 //				std::cout<< optim_krit<<" ";
 				if (optim_krit<500)
 				optimal_x[0]=initial_xd[0];
@@ -638,6 +643,11 @@ void FindBestLocation(double *final,double *crit)
 		min=optim_krit;
 	}*/
 
+
+	last_final[0]=final[0];
+	last_final[1]=final[1];
+	last_final[2]=final[2];
+	last_final[3]=final[3];
 	*crit=min;
 
 }
@@ -677,8 +687,8 @@ bool GetPowerLinesLocation(sensor_msgs::MagneticField  m_vector0,
 
 	int d1=duration1.nsec/1000000;
 	int d2=duration2.nsec/1000000;
-//	std::cout<<" duration 1 "<<d1<<std::endl;
-//	std::cout<<" duration 2 "<<d2<<std::endl;
+	std::cout<<" duration 1 "<<d1<<std::endl;
+	std::cout<<" duration 2 "<<d2<<std::endl;
 		if (d1%20>5 && d1%20<15)
 		{
 			m_vector1.magnetic_field.x=-m_vector1.magnetic_field.x;
@@ -702,27 +712,35 @@ bool GetPowerLinesLocation(sensor_msgs::MagneticField  m_vector0,
 	z_vector.x=0;
 	z_vector.y=0;
 	z_vector.z=1;
-//	ispisi_vektor(m_vector0.magnetic_field,"m0 ");
-//	ispisi_vektor(m_vector1.magnetic_field,"m1 ");
-//	ispisi_vektor(m_vector2.magnetic_field,"m2 ");
+	m_vector1.magnetic_field = transform_vector(m_vector1.magnetic_field, transform0.getBasis());
+	m_vector2.magnetic_field = transform_vector(m_vector2.magnetic_field, transform1.getBasis());
+
+	ispisi_vektor(m_vector0.magnetic_field,"m0 ");
+	ispisi_vektor(m_vector1.magnetic_field,"m1 ");
+	ispisi_vektor(m_vector2.magnetic_field,"m2 ");
+
+
+
 
 	m_0 = transform_vector(m_vector0.magnetic_field, base_link_rot);
 	m_1 = transform_vector(m_vector1.magnetic_field, base_link_rot);
 	m_2 = transform_vector(m_vector2.magnetic_field, base_link_rot);
 
-
+/*
 	geometry_msgs::Vector3 pom_vector1 = (CrossProduct(m_0, z_vector));
 	geometry_msgs::Vector3 pom_vector2 = (CrossProduct(m_1, z_vector));
 	geometry_msgs::Vector3 pom_vector3 = (CrossProduct(m_2, z_vector));
 	pom_vector1=transform_vector(pom_vector1, base_link_rot.inverse());
 	pom_vector2=transform_vector(pom_vector2, base_link_rot.inverse());
 	pom_vector3=transform_vector(pom_vector3, base_link_rot.inverse());
-
+*/
 	m_0 = /*transform_vector(*/m_vector0.magnetic_field/*, basis0)*/;
 	m_1 =/* transform_vector(*/m_vector1.magnetic_field/*, basis1)*/;
 	m_2 =/* transform_vector(*/m_vector2.magnetic_field/*, basis2)*/;
 
-
+		geometry_msgs::Vector3 pom_vector1 = (CrossProduct(m_0, m_1));
+		geometry_msgs::Vector3 pom_vector2 = (CrossProduct(m_0, m_2));
+		geometry_msgs::Vector3 pom_vector3 = (CrossProduct(m_1, m_2));
 	power_line_vector->x = (pom_vector1.x + pom_vector2.x + pom_vector3.x);
 	power_line_vector->y = (pom_vector1.y + pom_vector2.y + pom_vector3.y);
 	power_line_vector->z = (pom_vector1.z + pom_vector2.z + pom_vector3.z);

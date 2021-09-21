@@ -17,6 +17,7 @@ bool first = true;
 sensor_msgs::MagneticField data[MAX_DATA];
 int received=0;
 std::string magnetic_vector_topic;
+double scaling=1;
 
 
 void magnetometer_callback(const sensor_msgs::MagneticField::ConstPtr& msg){
@@ -62,9 +63,9 @@ double magnetometer_sampling_time=0.01282;
 double maxa, mina;
 double Objective(double x[3])
 {
-	double a = x[0] * 1000000;
+	double a = x[0] * scaling;
 	double fi = x[1];
-	double dc = x[2] * 1000000;
+	double dc = x[2] * scaling;
 
 	double y = 0;
 	for (int i = 0; i < measurements_count; i++)
@@ -72,7 +73,7 @@ double Objective(double x[3])
 		double t = i * magnetometer_sampling_time; //
 		double value = dc + a * sin(2 * 3.14159265 * frequency * t + fi);
 
-		y = y + (value - measurements[i] * 1000000) * (value - measurements[i]*1000000);
+		y = y + (value - measurements[i] * scaling) * (value - measurements[i]*scaling);
 	}
 	return y;
 }
@@ -80,12 +81,12 @@ double Objective(double x[3])
 double Optimize(int n, int f, double *data, double *phase)
 {
 	int icount, numres, ifault;
-	double initial_xd[3] = {0.00001, 1, 0.000001};
+	double initial_xd[3] = {10/scaling, 1, 10/scaling};
 	double optim_krit;
 	double optim_x[3];
 	double optim_x_final[3];
 
-	double step[3] = {0.000001, 0.1, 0.0000001};
+	double step[3] = {1/scaling, 0.1, 1/scaling};
 
 	measurements_count = n;
 	double minvalue=0;
@@ -105,10 +106,10 @@ double Optimize(int n, int f, double *data, double *phase)
 		sum = sum + data[i];
 	}
 	double mean = sum / n;
-	double min = 1000000000000;
+	double min = 100000000000000000000000.;
 	std::cout<<std::endl;
-	maxa = (maxvalue - minvalue) / 2 * 1.2 * 1000000;
-	mina = (maxvalue - minvalue) / 2 * 0.8 * 1000000;
+	maxa = (maxvalue - minvalue) / 2 * 1.2 * scaling;
+	mina = (maxvalue - minvalue) / 2 * 0.8 * scaling;
 	initial_xd[0] = (maxvalue - minvalue) / 2;
 	initial_xd[1] = 0.5;;
 	initial_xd[2] = mean;
@@ -122,7 +123,7 @@ double Optimize(int n, int f, double *data, double *phase)
 		nelmin(Objective, 3, initial_xd, optim_x, &optim_krit, 1.0e-8, step, 10, 500, &icount, &numres, &ifault );
 
 	}
-	std::cout<<"max min vs optim "<<(maxvalue - minvalue) / 2<<" "<<optim_x[0]<<std::endl;
+	std::cout<<"max min vs optim "<<(maxvalue - minvalue) / 2<<" "<<optim_x[0]<<"  optim krit"<<optim_krit<<std::endl;
 	if (optim_krit < min)
 	{
 		min=optim_krit;
@@ -140,11 +141,11 @@ void ispisi_vektor(geometry_msgs::Vector3 vektor, std::string str)
 	std::cout<<str<<" "<<vektor.x<<" "<<vektor.y<< " "<<vektor.z<<std::endl;
 }
 
-double GetDFTAngle(int selected_axis, int point_count, int start_element)
+double GetDFTAngle(int selected_axis, int point_count, int start_element,int dft_element)
 {
 	double real=0, img=0;
 	double current_data;
-	int k = 50;
+	int k = dft_element;
 	for (int i=0;i<point_count; i++)
 	{
 		int current_element = start_element + i - point_count;
@@ -250,17 +251,19 @@ geometry_msgs::Vector3 GetVectorUsingOptimization(int n, int f, ros::Time *stamp
 
 	}
 	double anglex,angley,anglez;
-	std::cout<<magnetic_vector_topic<< " x ";
+//	std::cout<<magnetic_vector_topic<< " x ";
 	result.x = Optimize(countx, f, x, &anglex);
-	std::cout<<magnetic_vector_topic<<" y ";
+//	std::cout<<magnetic_vector_topic<<" y ";
 	result.y = Optimize(county, f, y, &angley);
-	std::cout<<magnetic_vector_topic<<" z ";
+//	std::cout<<magnetic_vector_topic<<" z ";
 	result.z = Optimize(countz, f, z, &anglez);
+//	std::cout<<"result x y z "<<result.x<<" "<<result.y<<" "<<result.z<<std::endl;
+//	std::cout<<"angle x y z "<<anglex<<" "<<angley<<" "<<anglez<<std::endl;
 	bool add_pi[3]={false,false,false};
 	if (result.x < 0){ anglex = anglex + 3.14159; result.x = fabs(result.x); add_pi[0]= true;}
 	if (result.y < 0){ angley = angley + 3.14159; result.y = fabs(result.y); add_pi[1]=true;}
 	if (result.z < 0){ anglez = anglez + 3.14159; result.z = fabs(result.z); add_pi[2]=true;}
-	std::cout<<" angle init "<<anglex<< " "<< angley<<" "<<anglez<<std::endl;
+//	std::cout<<" angle init "<<anglex<< " "<< angley<<" "<<anglez<<std::endl;
 
 	anglex = anglex - ((int)(anglex / (2 * 3.14159)))*2*3.14159;
 	angley = angley - ((int)(angley / (2 * 3.14159)))*2*3.14159;
@@ -290,25 +293,47 @@ geometry_msgs::Vector3 GetVectorUsingOptimization(int n, int f, ros::Time *stamp
 	double fft_angle=0;
 	if (selected_angle == 0)
 	{
-		fft_angle = GetDFTAngle(selected_angle, 200, start_element_x);
+		if (magnetometer_sampling_time==0.002)
+		{
+			fft_angle = GetDFTAngle(selected_angle, 200, start_element_x,20);
+		}
+		else
+		{
+			fft_angle = GetDFTAngle(selected_angle, 200, start_element_x,50);
+		}
 	}
 	if (selected_angle == 1)
 	{
-		fft_angle = GetDFTAngle(selected_angle, 200, start_element_y);
+		if (magnetometer_sampling_time==0.002)
+		{
+			fft_angle = GetDFTAngle(selected_angle, 200, start_element_y,20);
+		}
+		else
+		{
+			fft_angle = GetDFTAngle(selected_angle, 200, start_element_y,50);
+		}
 	}
 	if (selected_angle == 2)
 	{
-		fft_angle = GetDFTAngle(selected_angle, 200, start_element_z);
+		if (magnetometer_sampling_time==0.002)
+		{
+			fft_angle = GetDFTAngle(selected_angle, 200, start_element_z,20);
+		}
+		else
+		{
+			fft_angle = GetDFTAngle(selected_angle, 200, start_element_z,50);
+		}
 	}
+
 
 	std::cout<<"fft angle "<<fft_angle<<std::endl;
 
 
 	ros::Duration difference(0, 0.02 * (2 * 3.14159 - fft_angle) / 2 / 3.14159265 * 1000000000);
-	std::cout<<"time difference "<< 0.02 * (2 * 3.14159 - fft_angle) / 2 / 3.14159265*1000<<std::endl;
+//	std::cout<<"time difference "<< 0.02 * (2 * 3.14159 - fft_angle) / 2 / 3.14159265*1000<<std::endl;
 
 	ros::Time new_time(begin_stamp+difference);
-	std::cout<<"time "<<new_time.nsec/1000000<<std::endl;
+//	std::cout<<"time "<<new_time.nsec/1000000<<std::endl;
 
 	int present= new_time.nsec/1000000;
 
@@ -321,7 +346,7 @@ geometry_msgs::Vector3 GetVectorUsingOptimization(int n, int f, ros::Time *stamp
 
 	diff1=diff1 % 20;
 	diff2=diff2 % 20;
-	std::cout<< " time difference since last "<<diff1<<" "<<diff2<<std::endl;
+//	std::cout<< " time difference since last "<<diff1<<" "<<diff2<<std::endl;
 /*
 	if (diff1 <= 5 && diff2 <= 5)
 	{
@@ -368,7 +393,7 @@ geometry_msgs::Vector3 GetVectorUsingOptimization(int n, int f, ros::Time *stamp
 	last1 = present;
 
 
-	std::cout<<"stamp "<<new_time.sec<<" "<<new_time.nsec<<std::endl;
+//	std::cout<<"stamp "<<new_time.sec<<" "<<new_time.nsec<<std::endl;
 
 	*stamp = new_time;
 	return result;
@@ -414,6 +439,7 @@ int main (int argc, char** argv){
     nh_ns.param("number_of_points_for_analysis", number_of_points_for_analysis, 200);
     nh_ns.param("number_of_cycles_for_analysis", cycles_for_analysis, 5);
     nh_ns.param("magnetometer_sampling_time", magnetometer_sampling_time,0.01282);
+    nh_ns.param("scaling", scaling, 1.);
 
 
     ros::Subscriber magnetometer_subscriber = nh.subscribe(magnetometer_topic, 1000, magnetometer_callback);
@@ -474,12 +500,12 @@ int main (int argc, char** argv){
 
 //        	ispisi_vektor(vector_final,"final ");
 
-    		vector_final.x = /*vector_final.x / 1000000* 0.9 + */vector.x;// * 0.1;
-          	vector_final.y = /*vector_final.y / 1000000 * 0.9 +*/ vector.y;// * 0.1;
-        	vector_final.z = /*vector_final.z / 1000000 * 0.9 + */vector.z;// * 0.1;
-        	vector_final.x *= 1000000;
-        	vector_final.y *= 1000000;
-        	vector_final.z *= 1000000;
+    		vector_final.x = /*vector_final.x / scaling* 0.9 + */vector.x;// * 0.1;
+          	vector_final.y = /*vector_final.y / scaling * 0.9 +*/ vector.y;// * 0.1;
+        	vector_final.z = /*vector_final.z / scaling * 0.9 + */vector.z;// * 0.1;
+        	vector_final.x *= scaling;
+        	vector_final.y *= scaling;
+        	vector_final.z *= scaling;
 
     		vector_final_old_old = vector_final_old;
     		vector_final_old = pomocni_vektor;
