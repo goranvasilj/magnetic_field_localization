@@ -440,8 +440,8 @@ double Objective1(double x[4])
 
 double levmarq_final_error = 1e10;
 
-
-
+double previousx=0,previousy=0,previousz=0,previousi=0;;
+bool first=true;
 void FindBestLocation(double *final,double *crit)
 {
 	double optim_x[4];
@@ -517,8 +517,11 @@ void FindBestLocation(double *final,double *crit)
 
 
 				optim_krit = Objective1(initial_xd);
+				double diff=fabs(pomak.x-previousx)/4+fabs(pomak.y-previousy)/4+fabs(pomak.z-previousz)/4+fabs(ii-previousi)/40;
+				optim_krit=optim_krit*(1+diff);
+
 //				std::cout<< optim_krit<<" ";
-				if (optim_krit<500)
+		//		if (optim_krit<500)
 				optimal_x[0]=initial_xd[0];
 				optimal_x[1]=initial_xd[1];
 				optimal_x[2]=initial_xd[2];
@@ -576,14 +579,17 @@ void FindBestLocation(double *final,double *crit)
 
 
 				optim_krit = Objective1(initial_xd);
+				double diff=fabs(pomak.x-previousx)/4+fabs(pomak.y-previousy)/4+fabs(pomak.z-previousz)/4+fabs(ii-previousi)/40;
+				optim_krit=optim_krit*(1+diff);
 //				std::cout<< optim_krit<<" ";
-				if (optim_krit<500)
+//				if (optim_krit<500)
 				optimal_x[0]=initial_xd[0];
 				optimal_x[1]=initial_xd[1];
 				optimal_x[2]=initial_xd[2];
 				optimal_x[3]=initial_xd[3];
 				levmarq_final_error=optim_krit;
 				//std::cout<<optim_krit<<" ";
+
 				if (levmarq_final_error<min)
 				{
 					y = Objective1(optimal_x);
@@ -602,6 +608,12 @@ void FindBestLocation(double *final,double *crit)
 			}
 		}
 	}
+
+	previousx=final[0];
+	previousy=final[1];
+	previousz=final[2];
+	previousi=final[3];
+	first=false;
 	initial_xd[0] = 0;// 0;  // x
 	initial_xd[1] = -0.05;//yi;  // y
 	initial_xd[2] = -0.190;//xi;//zi;  // y
@@ -833,8 +845,8 @@ int main (int argc, char** argv){
     nh_ns.param("vector0_frame", frame0, (std::string) "/imu1");
     nh_ns.param("vector1_frame", frame1, (std::string) "/imu2");
     nh_ns.param("vector2_frame", frame2, (std::string) "/imu3");
-    nh_ns.param("power_line_frame0", power_line_frame0, (std::string) "/power_line0");
-    nh_ns.param("power_line_frame1", power_line_frame1, (std::string) "/power_line1");
+    nh_ns.param("power_line_frame0", power_line_frame0, (std::string) "/power_line0_n");
+    nh_ns.param("power_line_frame1", power_line_frame1, (std::string) "/power_line1_n");
 
 
     ros::Subscriber magnetic_vector_subscriber1 = nh.subscribe(magnetic_vector0, 1, magnetic_vector0_callback);
