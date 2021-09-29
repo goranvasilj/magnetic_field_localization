@@ -248,7 +248,10 @@ inline geometry_msgs::Vector3 operator-(geometry_msgs::Vector3 o1, geometry_msgs
 	return rez;
 }
 
-
+double GetAngleBetweenVectors(geometry_msgs::Vector3 v1, geometry_msgs::Vector3 v2)
+{
+	return acos( DotProduct(v1,v2)/VectorSize(v1)/VectorSize(v2));
+}
 inline geometry_msgs::Vector3 operator+(geometry_msgs::Vector3 o1, geometry_msgs::Vector3 o2)
 {
 	geometry_msgs::Vector3 rez;
@@ -294,7 +297,6 @@ void Objective(
 	point.x = x[0];
 	point.y = x[1];
 	point.z = x[2];
-
 
 
 	tf::Matrix3x3 rot=base_link.getBasis();
@@ -417,6 +419,45 @@ void Objective(
 	}
 	plp0=plp1;
 	output_pose=plp0;
+
+	geometry_msgs::Vector3 plp0_global = transform_vector(point,rot.inverse());
+	geometry_msgs::Vector3 plp1_global = transform_vector(plp0,rot.inverse());
+	geometry_msgs::Vector3 m1_loc_vector;
+	m1_loc_vector.x=m1_loc.getOrigin().getX();
+	m1_loc_vector.y=m1_loc.getOrigin().getY();
+	m1_loc_vector.z=m1_loc.getOrigin().getZ();
+	m1_loc_vector=transform_vector(m1_loc_vector,rot.inverse());
+	if (ispis)
+	{
+		 ispisi_vektor(plp0_global," plp0 global ");
+	}
+	if (plp0_global.z<0)
+	{
+		geometry_msgs::Vector3 v1=m1_loc_vector-plp0_global;
+		geometry_msgs::Vector3 v2=m1_loc_vector-plp1_global;
+		geometry_msgs::Vector3 v3=plp0_global-plp1_global;
+		geometry_msgs::Vector3 v4=plp1_global-plp0_global;
+		if (ispis) ispisi_vektor(v1," v1");
+		if (ispis) ispisi_vektor(v2," v2");
+		if (ispis) ispisi_vektor(v3," v3");
+		if (ispis) ispisi_vektor(v4," v4");
+
+		double angle1=GetAngleBetweenVectors(v1,v4);
+		double angle2=GetAngleBetweenVectors(v2,v3);
+		if (ispis)
+		{
+			std::cout<<"angle "<<angle1<<" "<<angle2<<std::endl;
+		}
+
+		if (fabs(angle1)<3.14159/2 && fabs(angle2)<3.14159/2)
+		{
+			out_f[0]=100000;
+			return;
+		}
+
+	}
+
+
 //	std::cout<<min_dist<<" ";
 	out_f[0] = min_dist;
 }
@@ -845,8 +886,8 @@ int main (int argc, char** argv){
     nh_ns.param("vector0_frame", frame0, (std::string) "/imu1");
     nh_ns.param("vector1_frame", frame1, (std::string) "/imu2");
     nh_ns.param("vector2_frame", frame2, (std::string) "/imu3");
-    nh_ns.param("power_line_frame0", power_line_frame0, (std::string) "/power_line0_n");
-    nh_ns.param("power_line_frame1", power_line_frame1, (std::string) "/power_line1_n");
+    nh_ns.param("power_line_frame0", power_line_frame0, (std::string) "/power_line0");
+    nh_ns.param("power_line_frame1", power_line_frame1, (std::string) "/power_line1");
 
 
     ros::Subscriber magnetic_vector_subscriber1 = nh.subscribe(magnetic_vector0, 1, magnetic_vector0_callback);
@@ -890,8 +931,8 @@ int main (int argc, char** argv){
     	listener.lookupTransform("/magnetometer0", "/power_line_gound_truth0", t, cal1);
     	listener.lookupTransform("/magnetometer0", "/power_line_gound_truth1", t, cal2);
     	cout<<"gorund truth"<<endl;
-    	ispisi_vektor(cal1.getOrigin(),"power line 0");
-    	ispisi_vektor(cal2.getOrigin(),"power line 1");
+    	ispisi_vektor(cal1.getOrigin(),"power line 0_n");
+    	ispisi_vektor(cal2.getOrigin(),"power line 1_n");
     	cout<<endl<<endl;
     }
     catch (tf::TransformException ex){
