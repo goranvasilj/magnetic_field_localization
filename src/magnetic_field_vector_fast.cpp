@@ -135,10 +135,12 @@ double Optimize(int n, int f, double *data, double *phase)
 }
 
 
+
 void ispisi_vektor(geometry_msgs::Vector3 vektor, std::string str)
 {
 	std::cout<<str<<" "<<vektor.x<<" "<<vektor.y<< " "<<vektor.z<<std::endl;
 }
+
 
 double GetDFTAngle(int selected_axis, int point_count, int start_element)
 {
@@ -168,6 +170,7 @@ double GetDFTAngle(int selected_axis, int point_count, int start_element)
 	std::cout<<"dft real img "<<real<<" "<<img<<std::endl;
 	return atan2(img,real);
 }
+
 
 int last1=0;
 int last2=0;
@@ -250,17 +253,14 @@ geometry_msgs::Vector3 GetVectorUsingOptimization(int n, int f, ros::Time *stamp
 
 	}
 	double anglex,angley,anglez;
-	std::cout<<magnetic_vector_topic<< " x ";
 	result.x = Optimize(countx, f, x, &anglex);
-	std::cout<<magnetic_vector_topic<<" y ";
 	result.y = Optimize(county, f, y, &angley);
-	std::cout<<magnetic_vector_topic<<" z ";
 	result.z = Optimize(countz, f, z, &anglez);
+
 	bool add_pi[3]={false,false,false};
 	if (result.x < 0){ anglex = anglex + 3.14159; result.x = fabs(result.x); add_pi[0]= true;}
 	if (result.y < 0){ angley = angley + 3.14159; result.y = fabs(result.y); add_pi[1]=true;}
 	if (result.z < 0){ anglez = anglez + 3.14159; result.z = fabs(result.z); add_pi[2]=true;}
-	std::cout<<" angle init "<<anglex<< " "<< angley<<" "<<anglez<<std::endl;
 
 	anglex = anglex - ((int)(anglex / (2 * 3.14159)))*2*3.14159;
 	angley = angley - ((int)(angley / (2 * 3.14159)))*2*3.14159;
@@ -284,8 +284,6 @@ geometry_msgs::Vector3 GetVectorUsingOptimization(int n, int f, ros::Time *stamp
 		result.z = -result.z;
 	}
 	if (angle_max < 0) angle_max += 2 * 3.14159265;
-	ispisi_vektor(result," vektor ");
-	std::cout<<" angle "<<anglex<< " "<< angley<<" "<<anglez<<"     angle max"<< angle_max<<std::endl;
 
 	double fft_angle=0;
 	if (selected_angle == 0)
@@ -301,14 +299,10 @@ geometry_msgs::Vector3 GetVectorUsingOptimization(int n, int f, ros::Time *stamp
 		fft_angle = GetDFTAngle(selected_angle, 200, start_element_z);
 	}
 
-	std::cout<<"fft angle "<<fft_angle<<std::endl;
-
 
 	ros::Duration difference(0, 0.02 * (2 * 3.14159 - fft_angle) / 2 / 3.14159265 * 1000000000);
-	std::cout<<"time difference "<< 0.02 * (2 * 3.14159 - fft_angle) / 2 / 3.14159265*1000<<std::endl;
 
 	ros::Time new_time(begin_stamp+difference);
-	std::cout<<"time "<<new_time.nsec/1000000<<std::endl;
 
 	int present= new_time.nsec/1000000;
 
@@ -321,54 +315,10 @@ geometry_msgs::Vector3 GetVectorUsingOptimization(int n, int f, ros::Time *stamp
 
 	diff1=diff1 % 20;
 	diff2=diff2 % 20;
-	std::cout<< " time difference since last "<<diff1<<" "<<diff2<<std::endl;
-/*
-	if (diff1 <= 5 && diff2 <= 5)
-	{
-		if (diff1<diff2)
-		{
-			ros::Duration correction(0, diff1 * 1000000);
-			new_time = new_time - correction;
-			std::cout<<"correction "<<diff1<<std::endl;
-		}
-		else
-		{
-			ros::Duration correction(0, diff2 * 1000000);
-			new_time = new_time - correction;
-			std::cout<<"correction "<<diff2<<std::endl;
 
-		}
-	}
-	if (diff1 >= 15 & diff2 >= 15)
-	{
-		if (diff1<diff2)
-		{
-			ros::Duration correction(0, diff2 * 1000000);
-			new_time = new_time - correction;
-			std::cout<<"correction "<<diff2<<std::endl;
-
-		}
-		else
-		{
-			ros::Duration correction(0, diff1 * 1000000);
-			new_time = new_time - correction;
-			std::cout<<"correction "<<diff1<<std::endl;
-
-		}
-	}
-	if (diff1>5  && diff1 <15 && diff2 >5 && diff2<15)
-	{
-		ros::Duration correction(0, diff2 * 1000000);
-		new_time = new_time - correction;
-		std::cout<<"correction "<<diff2<<std::endl;
-
-
-	}*/
 	last2 = last1;
 	last1 = present;
 
-
-	std::cout<<"stamp "<<new_time.sec<<" "<<new_time.nsec<<std::endl;
 
 	*stamp = new_time;
 	return result;
@@ -384,6 +334,7 @@ double Median (double v1, double v2, double v3)
 	if (v2 <= v1 && v2 >= v3) return v2;
 	return v3;
 }
+
 geometry_msgs::Vector3 Median(geometry_msgs::Vector3 v1,
 		geometry_msgs::Vector3 v2,
 		geometry_msgs::Vector3 v3
@@ -477,10 +428,10 @@ int main (int argc, char** argv){
     		vector_final.x = /*vector_final.x / 1000000* 0.9 + */vector.x;// * 0.1;
           	vector_final.y = /*vector_final.y / 1000000 * 0.9 +*/ vector.y;// * 0.1;
         	vector_final.z = /*vector_final.z / 1000000 * 0.9 + */vector.z;// * 0.1;
-        	vector_final.x *= 1000000;
+        	/*vector_final.x *= 1000000;
         	vector_final.y *= 1000000;
         	vector_final.z *= 1000000;
-
+*/
     		vector_final_old_old = vector_final_old;
     		vector_final_old = pomocni_vektor;
 

@@ -11,13 +11,24 @@
 geometry_msgs::Vector3 received_vector0;
 geometry_msgs::Vector3 received_vector1;
 
-void magnetic_vector0_callback(const geometry_msgs::Vector3::ConstPtr& msg){
+void magnetic_vector0_callback(const sensor_msgs::MagneticField::ConstPtr& msg){
 
-	received_vector0 = *msg;
+	received_vector0.x = (*msg).magnetic_field.x;
+	received_vector0.y = (*msg).magnetic_field.y;
+	received_vector0.z = (*msg).magnetic_field.z;
+
+//	std::cout<<"received0 "<<*msg<<std::endl;
 }
-void magnetic_vector1_callback(const geometry_msgs::Vector3::ConstPtr& msg){
-	received_vector1 = *msg;
+
+void magnetic_vector1_callback(const sensor_msgs::MagneticField::ConstPtr& msg){
+	received_vector1.x = (*msg).magnetic_field.x;
+	received_vector1.y = (*msg).magnetic_field.y;
+	received_vector1.z = (*msg).magnetic_field.z;
+
+//	std::cout<<"received1 "<<*msg<<std::endl;
+
 }
+
 geometry_msgs::Vector3 CrossProduct(geometry_msgs::Vector3 v_A, geometry_msgs::Vector3 v_B) {
 	geometry_msgs::Vector3 c_P;
    c_P.x = v_A.y * v_B.z - v_A.z * v_B.y;
@@ -25,6 +36,7 @@ geometry_msgs::Vector3 CrossProduct(geometry_msgs::Vector3 v_A, geometry_msgs::V
    c_P.z = v_A.x * v_B.y - v_A.y * v_B.x;
    return c_P;
 }
+
 geometry_msgs::Vector3 sum_vector(geometry_msgs::Vector3 v1, geometry_msgs::Vector3 v2) {
 	geometry_msgs::Vector3 v3;
 	v3.x = v1.x + v2.x;
@@ -32,6 +44,7 @@ geometry_msgs::Vector3 sum_vector(geometry_msgs::Vector3 v1, geometry_msgs::Vect
 	v3.z = v1.z + v2.z;
    return v3;
 }
+
 geometry_msgs::Vector3 normalize_vector(geometry_msgs::Vector3 v)
 {
 	double dist=sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
@@ -40,14 +53,17 @@ geometry_msgs::Vector3 normalize_vector(geometry_msgs::Vector3 v)
 	v.z = v.z / dist;
 	return v;
 }
+
 double VectorSize(geometry_msgs::Vector3 vector)
 {
 	return sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
 }
+
 double DotProduct(geometry_msgs::Vector3 v_A, geometry_msgs::Vector3 v_B)
 {
 	return v_A.x * v_B.x + v_A.y * v_B.y + v_A.z * v_B.z;
 }
+
 geometry_msgs::Vector3 transform_vector(geometry_msgs::Vector3 vector, tf::Matrix3x3 rotation)
 {
 	geometry_msgs::Vector3 result;
@@ -66,12 +82,12 @@ bool GetPowerLineLocation(geometry_msgs::Vector3 m_vector1,
 					tf::StampedTransform calib2)
 {
 
-//	ROS_INFO_STREAM("vector 1 "<<m_vector1.x<<" "<<m_vector1.y<<" "<<m_vector1.z);
-//	ROS_INFO_STREAM("vector 2 "<<m_vector2.x<<" "<<m_vector2.y<<" "<<m_vector2.z);
 
 	//adjust vectors according to calibration
 	tf::Matrix3x3 basis1 = calib1.getBasis();
 	tf::Matrix3x3 basis2 = calib2.getBasis();
+	/*ROS_INFO_STREAM("vector 1 init"<<m_vector1.x<<" "<<m_vector1.y<<" "<<m_vector1.z);
+	ROS_INFO_STREAM("vector 2 init"<<m_vector2.x<<" "<<m_vector2.y<<" "<<m_vector2.z);*/
 
 	m_vector1 = transform_vector(m_vector1, basis1);
 	m_vector2 = transform_vector(m_vector2, basis2);
@@ -82,7 +98,7 @@ bool GetPowerLineLocation(geometry_msgs::Vector3 m_vector1,
 	//to do rotacija m_vector2 to m_vector1 frame  - za paralelne senzore nije potrebna
 	*power_line_vector=CrossProduct(m_vector1, m_vector2);
 
-	ROS_INFO_STREAM("power_line "<<(*power_line_vector).x<<" "<<(*power_line_vector).y<<" "<<(*power_line_vector).z);
+	ROS_INFO_STREAM("power_line vector "<<(*power_line_vector).x<<" "<<(*power_line_vector).y<<" "<<(*power_line_vector).z);
 
 	if (VectorSize(m_vector1) * 0.1 > VectorSize(*power_line_vector)
 			&& VectorSize(m_vector2) * 0.1 > VectorSize(*power_line_vector) && 0==1)
@@ -146,27 +162,9 @@ bool GetPowerLineLocation(geometry_msgs::Vector3 m_vector1,
 
 		geometry_msgs::Vector3 towards_center1=CrossProduct(m_vector1, *power_line_vector);
 		geometry_msgs::Vector3 towards_center2=CrossProduct(m_vector2, *power_line_vector);
-//		ROS_INFO_STREAM("mag vector1 "<< m_vector1 <<" mag_vector2 "<< m_vector2);
-
-		ROS_INFO_STREAM("towards center1 "<< towards_center1 <<" towards_center_2 "<< towards_center2);
 
 
 		//closest point between two lines in 3d space;
-/*		geometry_msgs::Vector3 w0;
-		w0.x=(double) transform.getOrigin().x();
-		w0.y=(double) transform.getOrigin().y();
-		w0.z=(double) transform.getOrigin().z();
-
-		double a = DotProduct(towards_center1, towards_center1);
-		double b = DotProduct(towards_center1, towards_center2);
-		double c = DotProduct(towards_center2, towards_center2);
-		double d = DotProduct(towards_center1, w0);
-		double e = DotProduct(towards_center2, w0);
-		double sc = (b * e - c * d) / (a * c - b * b);
-		double tc = (a * e - b * d) / (a * c - b * b);
-		power_line_point->x = towards_center1.x * sc;
-		power_line_point->y = towards_center1.y * sc;
-		power_line_point->z = towards_center1.z * sc;*/
 		geometry_msgs::Vector3 a0;
 		a0.x = 0; a0.y=0; a0.z=0;
 		geometry_msgs::Vector3 b0;
@@ -178,52 +176,17 @@ bool GetPowerLineLocation(geometry_msgs::Vector3 m_vector1,
 		geometry_msgs::Vector3 b=normalize_vector(towards_center2);
 		geometry_msgs::Vector3 cn=normalize_vector(CrossProduct(b, a));
 
-		std::cout<<"a "<<a.x<< " "<<a.y<< " "<<a.z<<std::endl;
-		std::cout<<"b "<<b.x<< " "<<b.y<< " "<<b.z<<std::endl;
-		std::cout<<"b0 "<<b0.x<< " "<<b0.y<< " "<<b0.z<<std::endl;
-
-		std::cout<<"cn "<<cn.x<< " "<<cn.y<< " "<<cn.z<<std::endl;
 
 
 		cn=CrossProduct(b, a);
 		geometry_msgs::Vector3 n2=CrossProduct(b, cn);
-		std::cout<<"n2 "<<n2.x<< " "<<n2.y<< " "<<n2.z<<std::endl;
 		double dot1=DotProduct(b0, n2)/DotProduct(a,n2);
-		std::cout<<"dot "<<dot1<<std::endl;
 		geometry_msgs::Vector3 a2=a;
 		a2.x *= dot1;
 		a2.y *= dot1;
 		a2.z *= dot1;
 		geometry_msgs::Vector3 closest_approach=a2;
 
-
-
-		/*geometry_msgs::Vector3 sum1 = b0;  //b0-a0;
-		double dot1=DotProduct(sum1, a);
-		geometry_msgs::Vector3 projection_ = a;
-		projection_.x*=dot1;
-		projection_.y*=dot1;
-		projection_.z*=dot1;
-
-		double dot2=DotProduct(sum1, cn);
-		geometry_msgs::Vector3 sum2 = projection_;
-		sum2.x = -sum2.x;
-		sum2.y = -sum2.y;
-		sum2.z = -sum2.z;
-		geometry_msgs::Vector3 sum3 = cn;
-
-		sum3.x *= -dot2;
-		sum3.y *= -dot2;
-		sum3.z *= -dot2;
-
-		geometry_msgs::Vector3 rejection = sum_vector(sum_vector(sum1, sum2), sum3);
-
-		double faktor=VectorSize(rejection)/DotProduct(b, normalize_vector(rejection));
-		geometry_msgs::Vector3 sum4 = b;
-		sum4.x *= -faktor;
-		sum4.y *= -faktor;
-		sum4.z *= -faktor;
-		geometry_msgs::Vector3 closest_approach=sum_vector(b0, sum4);*/
 
 		*power_line_point=closest_approach;
 
@@ -246,16 +209,16 @@ geometry_msgs::Vector3 getClosestPointOnLine(geometry_msgs::Vector3 line_point,g
 	p1.x = x1;
 	p1.y = y1;
 	p1.z = z1;
-//	std::cout<<"transform base power_line "<<p1;
+
 	vector.x = vx;
 	vector.y = vy;
 	vector.z = vz;
-//	std::cout<<"line vector  "<<vector;
+
 	double t=-DotProduct(p1,vector)/VectorSize(vector)/VectorSize(p1);
-	std::cout<<"t "<<t<<std::endl;
 	result.x = x1 + t * vx;
 	result.y = y1 + t * vy;
 	result.z = z1 + t * vz;
+
 	return result;
 
 }
@@ -277,9 +240,9 @@ int main (int argc, char** argv){
     nh_ns.param("vector1_frame", frame1, (std::string) "/magnetometer1");
     nh_ns.param("power_line_frame", power_line_frame, (std::string) "/power_line");
 
-
     ros::Subscriber magnetic_vector_subscriber1 = nh.subscribe(magnetic_vector0, 10, magnetic_vector0_callback);
     ros::Subscriber magnetic_vector_subscriber2 = nh.subscribe(magnetic_vector1, 10, magnetic_vector1_callback);
+    std::cout<<magnetic_vector0<<" "<<magnetic_vector1<<std::endl;
 
     geometry_msgs::Vector3 power_line_vector;
     geometry_msgs::Vector3 power_line_point;
@@ -301,7 +264,7 @@ int main (int argc, char** argv){
     point1.z=0;
 
 
-    ros::Rate loop_rate(1);
+    ros::Rate loop_rate(10);
     tf::TransformListener listener;
     tf::TransformBroadcaster br;
     tf::Transform transform;
@@ -327,91 +290,21 @@ int main (int argc, char** argv){
         catch (tf::TransformException ex){
         	ROS_ERROR("%s",ex.what());
         }
-//    	ROS_INFO_STREAM("cal1 r0 " << cal1.getBasis().getRow(0).getX() << " " <<cal1.getBasis().getRow(0).getY() << " "<<cal1.getBasis().getRow(0).getZ()<<std::endl);
- //   	ROS_INFO_STREAM("cal1 r1 " << cal1.getBasis().getRow(1).getX() << " " <<cal1.getBasis().getRow(1).getY() << " "<<cal1.getBasis().getRow(1).getZ()<<std::endl);
- //   	ROS_INFO_STREAM("cal1 r2 " << cal1.getBasis().getRow(2).getX() << " " <<cal1.getBasis().getRow(2).getY() <<" " <<cal1.getBasis().getRow(2).getZ()<<std::endl);
-
- //   	ROS_INFO_STREAM("cal2 r0 " << cal2.getBasis().getRow(0).getX() << " " <<cal2.getBasis().getRow(0).getY()<<" " << cal2.getBasis().getRow(0).getZ()<<std::endl);
- //   	ROS_INFO_STREAM("cal2 r1 " << cal2.getBasis().getRow(1).getX() << " " <<cal2.getBasis().getRow(1).getY()<<" " << cal2.getBasis().getRow(1).getZ()<<std::endl);
- //   	ROS_INFO_STREAM("cal2 r2 " << cal2.getBasis().getRow(2).getX() << " " <<cal2.getBasis().getRow(2).getY()<<" " << cal2.getBasis().getRow(2).getZ()<<std::endl);
 
         try{
-
-
         	listener.lookupTransform(frame0, frame1, t, transform);
             point1.x=transform.getOrigin().getX();
             point1.y=transform.getOrigin().getY();
             point1.z=transform.getOrigin().getZ();
 
-//        	ROS_INFO_STREAM("transform" <<transform.getOrigin().getX()<<" "<<transform.getOrigin().getY()<< " "<<transform.getOrigin().getZ());
 
             bool rez=GetPowerLineLocation(received_vector0, received_vector1, transform, &power_line_vector, &power_line_point, cal1, cal2);
-            geometry_msgs::Vector3 p1 = getClosestPointOnLine(power_line_point,power_line_vector,point0);
-            geometry_msgs::Vector3 p2 = getClosestPointOnLine(power_line_point,power_line_vector,point1);
-            std::cout<<"0 dist1 dist2 magn1 magn2  d1/d2 m2/m1 "<<VectorSize(p1)<<" "<<VectorSize(p2)<<" "<<VectorSize(received_vector0)<<" "<<VectorSize(received_vector1)<<" "
-            	<<" "<<VectorSize(p1)/VectorSize(p2)<<" "<<VectorSize(received_vector1)/VectorSize(received_vector0)<<std::endl;
-            /*if (fabs(VectorSize(p1)/VectorSize(p2)-VectorSize(received_vector1)/VectorSize(received_vector0))>0.25)
-            {
-            	double d1=fabs(VectorSize(p1)/VectorSize(p2)-VectorSize(received_vector1)/VectorSize(received_vector0));
-                received_vector0.y = -received_vector0.y;
-                bool rez1=GetPowerLineLocation(received_vector0, received_vector1, transform, &power_line_vector1, &power_line_point1, cal1, cal2);
-
-                p1 = getClosestPointOnLine(power_line_point1,power_line_vector,point0);
-                p2 = getClosestPointOnLine(power_line_point1,power_line_vector,point1);
-                std::cout<<"1 dist1 dist2 magn1 magn2  d1/d2 m2/m1 "<<VectorSize(p1)<<" "<<VectorSize(p2)<<" "<<VectorSize(received_vector0)<<" "<<VectorSize(received_vector1)<<" "
-                	<<" "<<VectorSize(p1)/VectorSize(p2)<<" "<<VectorSize(received_vector1)/VectorSize(received_vector0)<<std::endl;
-                double d2=fabs(VectorSize(p1)/VectorSize(p2)-VectorSize(received_vector1)/VectorSize(received_vector0));
-                if (d2 < d1 && d2<0.5)
-                {
-                	d1=fabs(VectorSize(p1)/VectorSize(p2)-VectorSize(received_vector1)/VectorSize(received_vector0));
-                	std::cout<<"d1 = "<<d1<<std::endl;
-                	power_line_vector=power_line_vector1;
-                	power_line_point=power_line_point1;
-                }
-
-                received_vector1.y = -received_vector1.y;
-                bool rez2=GetPowerLineLocation(received_vector0, received_vector1, transform, &power_line_vector2, &power_line_point2, cal1, cal2);
-                p1 = getClosestPointOnLine(power_line_point2,power_line_vector,point0);
-                p2 = getClosestPointOnLine(power_line_point2,power_line_vector,point1);
-                std::cout<<"2 dist1 dist2 magn1 magn2  d1/d2 m2/m1 "<<VectorSize(p1)<<" "<<VectorSize(p2)<<" "<<VectorSize(received_vector0)<<" "<<VectorSize(received_vector1)<<" "
-                	<<" "<<VectorSize(p1)/VectorSize(p2)<<" "<<VectorSize(received_vector1)/VectorSize(received_vector0)<<std::endl;
-                d2=fabs(VectorSize(p1)/VectorSize(p2)-VectorSize(received_vector1)/VectorSize(received_vector0));
-                if (d2 < d1 && d2<0.5)
-                {
-                	d1=fabs(VectorSize(p1)/VectorSize(p2)-VectorSize(received_vector1)/VectorSize(received_vector0));
-                	std::cout<<"d1 = "<<d1<<std::endl;
-                	power_line_vector=power_line_vector2;
-                	power_line_point=power_line_point2;
-                }
 
 
-                received_vector0.y = -received_vector0.y;
-                bool rez3=GetPowerLineLocation(received_vector0, received_vector1, transform, &power_line_vector3, &power_line_point3, cal1, cal2);
-                p1 = getClosestPointOnLine(power_line_point3,power_line_vector,point0);
-                p2 = getClosestPointOnLine(power_line_point3,power_line_vector,point1);
-                received_vector1.y = -received_vector1.y;
-                std::cout<<"3 dist1 dist2 magn1 magn2  d1/d2 m2/m1 "<<VectorSize(p1)<<" "<<VectorSize(p2)<<" "<<VectorSize(received_vector0)<<" "<<VectorSize(received_vector1)<<" "
-                	<<" "<<VectorSize(p1)/VectorSize(p2)<<" "<<VectorSize(received_vector1)/VectorSize(received_vector0)<<std::endl;
-                d2=fabs(VectorSize(p1)/VectorSize(p2)-VectorSize(received_vector1)/VectorSize(received_vector0));
-                if (d2 < d1 && d2<0.5)
-                {
-                	d1=fabs(VectorSize(p1)/VectorSize(p2)-VectorSize(received_vector1)/VectorSize(received_vector0));
-                	std::cout<<"d1 = "<<d1<<std::endl;
-                	power_line_vector=power_line_vector3;
-                	power_line_point=power_line_point3;
-                }
-
-            }*/
-
-
-
-
-            //            ROS_INFO_STREAM(rez<< " vector "<< power_line_vector<<"   point "<<power_line_point);
             transform1.setOrigin(tf::Vector3(power_line_point.x, power_line_point.y, power_line_point.z));
             tf::Quaternion q;
             if (power_line_vector.x==power_line_vector.x && power_line_point.x==power_line_point.x)
             {
-//            	q.setsetRotation(tf::Vector3(power_line_vector.x, power_line_vector.y, power_line_vector.z),0.1);
             	geometry_msgs::Vector3 pomocni;
             	pomocni.x=1;
             	pomocni.y=0;
@@ -419,9 +312,6 @@ int main (int argc, char** argv){
             	geometry_msgs::Vector3 kros=CrossProduct(pomocni,power_line_vector);
             	double w=1+DotProduct(pomocni,power_line_vector);
 
-//            	geometry_msgs::Vector3 kros=CrossProduct(power_line_vector,pomocni);
-//            	double w=1+DotProduct(power_line_vector,pomocni);
-            	//            	transform1.setRotation(tf::Quaternion(power_line_vector.x, power_line_vector.y, power_line_vector.z,0));
             	transform1.setRotation(tf::Quaternion(kros.x, kros.y, kros.z, w));
 
             	br.sendTransform(tf::StampedTransform(transform1, ros::Time::now(), frame0, power_line_frame));
