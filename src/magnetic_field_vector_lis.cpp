@@ -89,7 +89,7 @@ double Optimize(int n, int f, double *data, double *phase) {
 	double sum = 0;
 	for (int i = 0; i < n; i++) {
 		measurements[i] = data[i] * 400e-6 / 27368;
-		std::cout << measurements[i] << " ";
+//		std::cout << measurements[i] << " ";
 		if (data[i] < minvalue || i == 0) {
 			minvalue = data[i];
 		}
@@ -101,12 +101,12 @@ double Optimize(int n, int f, double *data, double *phase) {
 	maxvalue = maxvalue * 400e-6 / 27368;
 	minvalue = minvalue * 400e-6 / 27368;
 	sum = sum * 400e-6 / 27368;
-	std::cout << std::endl;
+//	std::cout << std::endl;
 	
 	
 	double mean = sum / n;
 	double min = 1000000000000;
-	std::cout << std::endl;
+//	std::cout << std::endl;
 	maxa = (maxvalue - minvalue) / 2 * 1.2 * 1000000;
 	mina = (maxvalue - minvalue) / 2 * 0.8 * 1000000;
 	initial_xd[0] = (maxvalue - minvalue) / 2;
@@ -129,16 +129,16 @@ double Optimize(int n, int f, double *data, double *phase) {
 				500, &icount, &numres, &ifault);
 
 	}
-	std::cout << "max min vs optim " << (maxvalue - minvalue) / 2 << " "
-			<< optim_x[0] << "     optim 1  optim 2 " << min << " "
-			<< optim_krit << std::endl;
+//	std::cout << "max min vs optim " << (maxvalue - minvalue) / 2 << " "
+//			<< optim_x[0] << "     optim 1  optim 2 " << min << " "
+//			<< optim_krit << std::endl;
 	if (optim_krit < min) {
 		min = optim_krit;
 		optim_x_final[0] = optim_x[0];
 		optim_x_final[1] = optim_x[1];
 		optim_x_final[2] = optim_x[2];
 	}
-	std::cout << "final" << optim_x_final[0] << std::endl;
+	//std::cout << "final" << optim_x_final[0] << std::endl;
 	*phase = optim_x_final[1];
 	return optim_x_final[0];
 }
@@ -215,7 +215,7 @@ geometry_msgs::Vector3 GetVectorUsingOptimization(int n, int f,
 	result.y = Optimize(county, f, y, &angley);
 	result.z = Optimize(countz, f, z, &anglez);
 
-	std::cout << result.x << " " << result.y << " " << result.z << std::endl;
+//	std::cout << result.x << " " << result.y << " " << result.z << std::endl;
 
 	//Add pi if result is negative
 	if (result.x < 0) {
@@ -376,7 +376,7 @@ int main(int argc, char **argv) {
 	geometry_msgs::Vector3 vector;
 	geometry_msgs::Vector3 vector_final;
 	geometry_msgs::Vector3 vector_final_old [200];
-	int old_vectors=3;
+	int old_vectors=71;
 
 
 	for (int i=0;i<old_vectors;i++)
@@ -416,7 +416,7 @@ int main(int argc, char **argv) {
 				printf("  d %.4f   ",1000*(data[current_element].header.stamp.toSec()-(int)(data[current_element].header.stamp.toSec())));
 			}
 			printf("\n"); received=0; 		loop_rate.sleep();continue;*/
-			std::cout << "received " << received << std::endl;
+//			std::cout << "received " << received << std::endl;
 
 			double pom1 = 0, pom2 = 0, pom3 = 0;
 
@@ -427,8 +427,8 @@ int main(int argc, char **argv) {
 			received = 0;
 
 
-			std::cout << vector.x << " " << vector.y << " " << vector.z
-					<< std::endl;
+//			std::cout << vector.x << " " << vector.y << " " << vector.z
+//					<< std::endl;
 
 			//check if one value is NaN
 			if (vector_final.x != vector_final.x)
@@ -486,7 +486,7 @@ int main(int argc, char **argv) {
 			z_size = 0;
 			vector_size = 0;
 			cycle_count = 0;
-			std::cout << magnetometer_frame << std::endl;
+//			std::cout << magnetometer_frame << std::endl;
 
 		}
 		loop_rate.sleep();

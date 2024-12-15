@@ -17,12 +17,12 @@
     <param name="magnetometer_sampling_time" type="double" value="0.001" />
   </node>
 
-  <node name="magnetic_field_vector2" pkg="magnetic_field_localization" type="magnetic_field_vector_lis" output="screen">
+  <!--node name="magnetic_field_vector2" pkg="magnetic_field_localization" type="magnetic_field_vector_lis" output="screen">
     <param name="magnetometer_topic" type="str" value="/magnetic2" />
     <param name="vector_topic" type="str" value="/magnetic_vector2" />
     <param name="magnetometer_frame" type="str" value="/magnetometer2" />
     <param name="magnetic_field_frequency" type="int" value="50" />
-    <param name="number_of_points_for_analysis" type="int" value="40" />
+    <param name="number_of_points_for_analysis" type="int" value="12" />
     <param name="number_of_cycles_for_analysis" type="int" value="1" />
     <param name="magnetometer_sampling_time" type="double" value="0.001" />
   </node>
@@ -32,17 +32,17 @@
     <param name="vector_topic" type="str" value="/magnetic_vector3" />
     <param name="magnetometer_frame" type="str" value="/magnetometer3" />
     <param name="magnetic_field_frequency" type="int" value="50" />
-    <param name="number_of_points_for_analysis" type="int" value="20" />
+    <param name="number_of_points_for_analysis" type="int" value="12" />
     <param name="number_of_cycles_for_analysis" type="int" value="1" />
     <param name="magnetometer_sampling_time" type="double" value="0.001" />
-  </node>
+  </node-->
 
   <node name="magnetic_field_vector4" pkg="magnetic_field_localization" type="magnetic_field_vector_lis" output="screen">
     <param name="magnetometer_topic" type="str" value="/magnetic4" />
     <param name="vector_topic" type="str" value="/magnetic_vector4" />
     <param name="magnetometer_frame" type="str" value="/magnetometer4" />
     <param name="magnetic_field_frequency" type="int" value="50" />
-    <param name="number_of_points_for_analysis" type="int" value="20" />
+    <param name="number_of_points_for_analysis" type="int" value="12" />
     <param name="number_of_cycles_for_analysis" type="int" value="1" />
     <param name="magnetometer_sampling_time" type="double" value="0.001" />
   </node>
@@ -52,17 +52,17 @@
     <param name="vector_topic" type="str" value="/magnetic_vector5" />
     <param name="magnetometer_frame" type="str" value="/magnetometer5" />
     <param name="magnetic_field_frequency" type="int" value="50" />
-    <param name="number_of_points_for_analysis" type="int" value="20" />
+    <param name="number_of_points_for_analysis" type="int" value="12" />
     <param name="number_of_cycles_for_analysis" type="int" value="1" />
     <param name="magnetometer_sampling_time" type="double" value="0.001" />
   </node>
   
-  <node name="magnetic_field_vector6" pkg="magnetic_field_localization" type="magnetic_field_vector_lis" output="screen">
+  <!--node name="magnetic_field_vector6" pkg="magnetic_field_localization" type="magnetic_field_vector_lis" output="screen">
     <param name="magnetometer_topic" type="str" value="/magnetic6" />
     <param name="vector_topic" type="str" value="/magnetic_vector6" />
     <param name="magnetometer_frame" type="str" value="/magnetometer6" />
     <param name="magnetic_field_frequency" type="int" value="50" />
-    <param name="number_of_points_for_analysis" type="int" value="20" />
+    <param name="number_of_points_for_analysis" type="int" value="12" />
     <param name="number_of_cycles_for_analysis" type="int" value="1" />
     <param name="magnetometer_sampling_time" type="double" value="0.001" />
   </node>
@@ -75,10 +75,10 @@
     <param name="vector_topic" type="str" value="/magnetic_vector7" />
     <param name="magnetometer_frame" type="str" value="/magnetometer7" />
     <param name="magnetic_field_frequency" type="int" value="50" />
-    <param name="number_of_points_for_analysis" type="int" value="20" />
+    <param name="number_of_points_for_analysis" type="int" value="12" />
     <param name="number_of_cycles_for_analysis" type="int" value="1" />
     <param name="magnetometer_sampling_time" type="double" value="0.001" />
-  </node>
+  </node-->
   
   
     
