@@ -32,6 +32,14 @@ inline geometry_msgs::Vector3 operator/(geometry_msgs::Vector3 o1, double o2) {
 	return rez;
 }
 
+ geometry_msgs::Vector3  Convert(const tf::Vector3& o1) {
+	geometry_msgs::Vector3 rez;
+	rez.x = o1.getX();
+	rez.y = o1.getY();
+	rez.z = o1.getZ();
+	return rez;
+}
+
 inline geometry_msgs::Vector3 operator+(geometry_msgs::Vector3 o1,
 		tf::Vector3 o2) {
 	geometry_msgs::Vector3 rez;

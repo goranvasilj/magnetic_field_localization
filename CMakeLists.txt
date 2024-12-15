@@ -17,6 +17,8 @@ include_directories(
 )
 
 add_executable(magnetic_field_localization src/magnetic_field_localization.cpp)
+add_executable(magnetic_field_localization_one_wire_optim src/magnetic_field_localization_one_wire_optim.cpp src/asa047.cpp)
+
 add_executable(magnetic_field_vector src/magnetic_field_vector.cpp)
 add_executable(magnetic_field_vector_fast src/magnetic_field_vector_fast.cpp src/asa047.cpp)
 add_executable(magnetic_field_vector_lis src/magnetic_field_vector_lis.cpp src/asa047.cpp)
@@ -28,6 +30,9 @@ target_link_libraries(magnetic_field_localization
   ${catkin_LIBRARIES}
 )
 
+target_link_libraries(magnetic_field_localization_one_wire_optim
+  ${catkin_LIBRARIES}
+)
 target_link_libraries(magnetic_field_localization_two_wire
   ${catkin_LIBRARIES}
 )

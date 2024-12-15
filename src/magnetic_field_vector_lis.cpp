@@ -376,7 +376,7 @@ int main(int argc, char **argv) {
 	geometry_msgs::Vector3 vector;
 	geometry_msgs::Vector3 vector_final;
 	geometry_msgs::Vector3 vector_final_old [200];
-	int old_vectors=3;
+	int old_vectors=5;
 
 
 	for (int i=0;i<old_vectors;i++)

@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<!--
+  Launch localization
+-->
+<launch>
+  
+ <!--include file="$(find magnetic_field_localization)/launch/mrs_four_vectors.launch" /-->
+
+<!-- run node -->
+  <!--node name="magnetic_field_localization1" pkg="magnetic_field_localization" type="magnetic_field_localization" output="screen">
+    <param name="magnetic_vector0" type="str" value="/magnetic_vector4" />
+    <param name="magnetic_vector1" type="str" value="/magnetic_vector5" />
+    <param name="vector0_frame" type="str" value="/magnetometer4" />
+    <param name="vector1_frame" type="str" value="/magnetometer5" />
+  </node-->
+
+  <!--node name="magnetic_field_localization2" pkg="magnetic_field_localization" type="magnetic_field_localization" output="screen">
+    <param name="magnetic_vector0" type="str" value="/magnetic_vector3" />
+    <param name="magnetic_vector1" type="str" value="/magnetic_vector5" />
+    <param name="vector0_frame" type="str" value="/magnetometer3" />
+    <param name="vector1_frame" type="str" value="/magnetometer5" />
+  </node>
+
+
+  <node name="magnetic_field_localization3" pkg="magnetic_field_localization" type="magnetic_field_localization" output="screen">
+    <param name="magnetic_vector0" type="str" value="/magnetic_vector4" />
+    <param name="magnetic_vector1" type="str" value="/magnetic_vector6" />
+    <param name="vector0_frame" type="str" value="/magnetometer4" />
+    <param name="vector1_frame" type="str" value="/magnetometer6" />
+  </node>
+  
+  <node name="magnetic_field_localization4" pkg="magnetic_field_localization" type="magnetic_field_localization" output="screen">
+    <param name="magnetic_vector0" type="str" value="/magnetic_vector3" />
+    <param name="magnetic_vector1" type="str" value="/magnetic_vector4" />
+    <param name="vector0_frame" type="str" value="/magnetometer3" />
+    <param name="vector1_frame" type="str" value="/magnetometer4" />
+  </node>
+
+  <node name="magnetic_field_localization5" pkg="magnetic_field_localization" type="magnetic_field_localization" output="screen">
+    <param name="magnetic_vector0" type="str" value="/magnetic_vector5" />
+    <param name="magnetic_vector1" type="str" value="/magnetic_vector6" />
+    <param name="vector0_frame" type="str" value="/magnetometer5" />
+    <param name="vector1_frame" type="str" value="/magnetometer6" />
+  </node-->
+  
+   <node name="magnetic_field_localization1" pkg="magnetic_field_localization" type="magnetic_field_localization_one_wire_optim" output="screen">
+    <param name="magnetic_vector0" type="str" value="/magnetic_vector1" />
+    <param name="magnetic_vector1" type="str" value="/magnetic_vector8" />
+    <param name="magnetic_vector2" type="str" value="/magnetic_vector4" />
+    <param name="magnetic_vector3" type="str" value="/magnetic_vector5" />
+
+    <param name="vector0_frame" type="str" value="/magnetometer1" />
+    <param name="vector1_frame" type="str" value="/magnetometer8" />
+    <param name="vector2_frame" type="str" value="/magnetometer4" />
+    <param name="vector3_frame" type="str" value="/magnetometer5" />
+    <param name="base_link_frame" type="str" value="/magnetometer1" />
+
+  </node>
+
+
+  <node pkg="tf" type="static_transform_publisher" name="magn1" args="0.235 0       0 1.57 3.14 0  /magnetometer_center /magnetometer1 100"/> 
+  <node pkg="tf" type="static_transform_publisher" name="magn2" args="-0.0254 0       0 1.57 3.14 0  /magnetometer_center /magnetometer2 100"/> 
+  <node pkg="tf" type="static_transform_publisher" name="magn3" args="0       0.0254  0 1.57 3.14 0 /magnetometer_center /magnetometer3 100"/> 
+  <node pkg="tf" type="static_transform_publisher" name="magn4" args="0       0.235  0 1.57 3.14 0 /magnetometer_center /magnetometer4 100"/> 
+  <node pkg="tf" type="static_transform_publisher" name="magn5" args="0       -0.235   0 1.57 3.14 0  /magnetometer_center /magnetometer5 100"/> 
+  <node pkg="tf" type="static_transform_publisher" name="magn6" args="0       -0.0254 0 1.57 3.14 0  /magnetometer_center /magnetometer6 100"/> 
+  <node pkg="tf" type="static_transform_publisher" name="magn7" args="0.0254  0       0 1.57 3.14 0 /magnetometer_center /magnetometer7 100"/> 
+  <node pkg="tf" type="static_transform_publisher" name="magn8" args="-0.235  0       0 1.57 3.14 0 /magnetometer_center /magnetometer8 100"/> 
+
+
+<!--  <node pkg="tf" type="static_transform_publisher" name="cal1" args="0 0 0 0.6 0 0.2 /magnetometer0 /magn1_cal 100"/> 
+  <node pkg="tf" type="static_transform_publisher" name="cal2" args="0 0 0 0.3 0 0 /magnetometer1 /magn2_cal 100"/> -->
+
+  <!--<node pkg="tf" type="static_transform_publisher" name="cal1" args="0 0 0 0 -0.45 0 /magnetometer0 /magn1_cal 100"/> 
+  <node pkg="tf" type="static_transform_publisher" name="cal2" args="0 0 0 0 -0.4 0 /magnetometer1 /magn2_cal 100"/> -->
+</launch>
