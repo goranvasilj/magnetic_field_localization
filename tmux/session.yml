@@ -1,0 +1,21 @@
+name: magnetic_localization_and_camera_control
+root: ./
+startup_window: roscore
+tmux_options: -f /etc/ctu-mrs/tmux.conf
+windows:
+  - magnetic_localization:
+      layout: tiled
+      panes:
+        - roscore
+        - waitForRos; roslaunch magentic_field_localization mrs.launch
+  - video:
+      layout: tiled
+      panes:
+        - waitForRos; roslaunch video_stream_opencv camera.launch	 
+        - waitForRos; roslaunch ros_rtsp rtsp_streams.launch
+  - camera_control:
+      layout: tiled
+      panes:        
+        - waitForRos; rosrun yangda_camera_control yangda_camera_control
+        - waitForRos; rosrun magnetic_camera_control magnetic_camera_control        
+
