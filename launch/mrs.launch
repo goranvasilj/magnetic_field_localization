@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!--
+  Launch localization
+-->
+<launch>
+ <include file="$(find magnetic_field_localization)/launch/mrs_8_vectors_real.launch" />
+ <include file="$(find magnetic_field_localization)/launch/mrs_localization_optim.launch" />
+
+<!-- run driver -->
+ <node name="magnetic_sensors_arduino" pkg="magnetic_sensors_arduino" type="magnetic_sensors_arduino" output="screen">
+ </node>
+</launch>
